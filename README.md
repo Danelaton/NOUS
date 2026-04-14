@@ -135,7 +135,6 @@ nous sdd-init
 | `nous sync` | Global | Re-inject agent configs (run after installing a new agent) |
 | `nous sdd-init` | Project | Create `openspec/` in the current directory |
 | `nous skill-registry` | Project | Scan project conventions into MemPalace |
-| `nous profile --name NAME` | Global | Switch OpenCode model routing profile |
 
 ---
 
@@ -175,26 +174,13 @@ Run `nous sync` after installing a new agent to inject its config.
 - Points the agent to `~/.nous/venv/` for MemPalace access
 - Registers the auto-save hooks with the agent's event system
 
-### Model Routing Profiles (OpenCode)
-Select a profile to control which model handles each SDD phase:
-
-| Profile | Design | Implementation | Verification |
-|---------|--------|---------------|-------------|
-| `fast` | Haiku | Haiku | Haiku |
-| `balanced` | Sonnet | Sonnet | GPT-4o |
-| `quality` | Opus | Sonnet | GPT-4o |
-
-```bash
-nous profile --name balanced
-```
-
 ---
 
 ## Architecture
 
 ```
 NOUS CLI (Go 1.24)
-├── cmd/nous/cli/          # cobra commands: install, status, sync, sdd-init, skill-registry, profile
+├── cmd/nous/cli/          # cobra commands: install, status, sync, sdd-init, skill-registry
 ├── cmd/nous/install/      # orchestrator, agent detection, openspec generator, skill registry
 ├── pkg/config/            # per-agent adapters (inject config files)
 ├── pkg/memory/            # MemPalace wrapper + MCP client + wake-up prompt
