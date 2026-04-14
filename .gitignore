@@ -1,6 +1,6 @@
 # ─── Binaries ────────────────────────────────────────────────────────────────
-nous
-nous.exe
+^nous$
+^nous\.exe$
 dist/
 
 # ─── Dev scratchpad (local testing, never tracked) ───────────────────────────

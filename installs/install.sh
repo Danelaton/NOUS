@@ -6,15 +6,18 @@ set -e
 #   curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
 #
 # What this installs (all global, nothing in your projects):
-#   ~/.local/bin/nous     — NOUS binary
-#   ~/.nous/config/       — agent configs (only for agents detected on this machine)
+#   ~/.local/bin/nous              — NOUS binary
+#   ~/.local/share/nous/skills/    — skills (AGENTS.md)
+#   ~/.nous/config/                — agent configs
 #
-# To activate SDD in a project (run AFTER install, inside your project):
+# To activate a project:
 #   cd ~/my-project && nous sdd-init
+#   cd ~/my-project && nous sync
 
 GITHUB_OWNER="nous-cli"
 GITHUB_REPO="nous"
 BREW_TAP="nous-cli/tap"
+SKILLS_DIR="$HOME/.local/share/nous/skills"
 NOUS_DIR="$HOME/.nous"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
@@ -25,6 +28,9 @@ warn()    { echo -e "${Y}[NOUS]${N} $*"; }
 err()     { echo -e "${R}[NOUS]${N} $*" >&2; }
 dim()     { echo -e "${D}[NOUS]${N} $*"; }
 
+# ── Resolve installer directory ────────────────────────────────────────────────
+INSTALLER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo ""
 echo -e "${C}=================================================${N}"
 echo -e "${C}  NOUS — AI Ecosystem Configurator${N}"
@@ -34,7 +40,7 @@ echo ""
 # ============================================================================
 # PHASE 1: Install NOUS binary
 # ============================================================================
-info "Phase 1/4: Installing NOUS binary..."
+info "Phase 1/5: Installing NOUS binary..."
 
 NOUS_INSTALLED=false
 
@@ -95,20 +101,40 @@ if [ "$NOUS_INSTALLED" = false ]; then
 fi
 
 # ============================================================================
-# PHASE 2: Create ~/.nous/ structure
+# PHASE 2: Install skills to ~/.local/share/nous/skills/
 # ============================================================================
 echo ""
-info "Phase 2/4: Creating ~/.nous/ structure..."
+info "Phase 2/5: Installing skills..."
+
+mkdir -p "$SKILLS_DIR"
+if [ -f "${INSTALLER_DIR}/skeleton/AGENTS.md" ]; then
+    cp "${INSTALLER_DIR}/skeleton/AGENTS.md" "$SKILLS_DIR/AGENTS.md"
+    success "AGENTS.md installed"
+else
+    warn "skeleton/AGENTS.md not found — skipping skills"
+fi
+
+# ============================================================================
+# PHASE 3: Create ~/.nous/ structure
+# ============================================================================
+echo ""
+info "Phase 3/5: Creating ~/.nous/ structure..."
 
 mkdir -p "$NOUS_DIR/config"
+mkdir -p "$NOUS_DIR/skills"
+
+# Copy skills to ~/.nous/skills/ (source for sync command)
+if [ -f "$SKILLS_DIR/AGENTS.md" ]; then
+    cp "$SKILLS_DIR/AGENTS.md" "$NOUS_DIR/skills/AGENTS.md"
+fi
 
 success "~/.nous/ ready"
 
 # ============================================================================
-# PHASE 3: Run nous install (detect + inject agent configs)
+# PHASE 4: Run nous install (detect + inject agent configs)
 # ============================================================================
 echo ""
-info "Phase 3/4: Detecting agents and configuring..."
+info "Phase 4/5: Detecting agents and configuring..."
 
 if command -v nous &>/dev/null; then
     nous install 2>/dev/null || warn "Agent configuration skipped — run 'nous sync' manually"
@@ -117,20 +143,21 @@ else
 fi
 
 # ============================================================================
-# PHASE 4: Summary
+# PHASE 5: Summary
 # ============================================================================
 echo ""
 echo -e "${C}=================================================${N}"
 echo -e "${C}  NOUS Installation Complete${N}"
 echo -e "${C}=================================================${N}"
 printf "  ${G}%-20s${N} %s\n" "nous binary:" "$(command -v nous 2>/dev/null || echo 'restart shell to activate')"
+printf "  ${G}%-20s${N} %s\n" "skills:" "$SKILLS_DIR"
 printf "  ${G}%-20s${N} %s\n" "config dir:" "$NOUS_DIR/config"
 echo ""
 echo -e "${C}  Next steps:${N}"
 echo ""
 printf "  %-25s %s\n" "cd ~/my-project" "go to any project"
-printf "  %-25s %s\n" "nous sdd-init" "activate SDD workflow there (creates openspec/)"
-printf "  %-25s %s\n" "nous status" "verify installation"
+printf "  %-25s %s\n" "nous sdd-init" "create openspec/ (SDD workflow)"
+printf "  %-25s %s\n" "nous sync" "setup dev/ + install AGENTS.md in project"
 echo ""
 echo -e "${D}  Restart your shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\"${N}"
 echo ""

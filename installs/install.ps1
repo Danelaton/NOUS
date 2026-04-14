@@ -3,16 +3,19 @@
 #   irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
 #
 # What this installs (all global, nothing in your projects):
-#   %LOCALAPPDATA%\nous\bin\nous.exe  — NOUS binary (added to user PATH)
-#   ~/.nous/config/                   — agent configs (only detected agents)
+#   %LOCALAPPDATA%\nous\bin\nous.exe    — NOUS binary (added to user PATH)
+#   %LOCALAPPDATA%\nous\skills\       — skills (AGENTS.md)
+#   ~/.nous/config/                    — agent configs
 #
-# To activate SDD in a project (run AFTER install, inside your project):
+# To activate a project:
 #   cd C:\my-project; nous sdd-init
+#   cd C:\my-project; nous sync
 
 $ErrorActionPreference = "SilentlyContinue"
 
 $GITHUB_OWNER = "nous-cli"
 $GITHUB_REPO  = "nous"
+$SKILLS_DIR   = Join-Path $env:LOCALAPPDATA "nous\skills"
 $NOUS_DIR     = Join-Path $HOME ".nous"
 
 function Write-Step  { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Cyan }
@@ -30,7 +33,7 @@ Write-Host ""
 # ============================================================================
 # PHASE 1: Install NOUS binary
 # ============================================================================
-Write-Step "Phase 1/4: Installing NOUS binary..."
+Write-Step "Phase 1/5: Installing NOUS binary..."
 
 $NOUS_INSTALLED = $false
 
@@ -119,23 +122,48 @@ if (-not $NOUS_INSTALLED) {
 }
 
 # ============================================================================
-# PHASE 2: Create ~/.nous/ structure
+# PHASE 2: Install skills to %LOCALAPPDATA%\nous\skills\
 # ============================================================================
 Write-Host ""
-Write-Step "Phase 2/4: Creating ~/.nous/ structure..."
+Write-Step "Phase 2/5: Installing skills..."
+
+# Get the directory where this script lives
+$scriptRoot = if ($PSCommandPath) { Split-Path $PSCommandPath -Parent } else { $PWD }
+$skeletonDir = Join-Path $scriptRoot "skeleton"
+$skeletonAgents = Join-Path $skeletonDir "AGENTS.md"
+
+New-Item -ItemType Directory -Path $SKILLS_DIR -Force | Out-Null
+
+if (Test-Path $skeletonAgents) {
+    Copy-Item $skeletonAgents $SKILLS_DIR -Force
+    Write-Ok "AGENTS.md installed"
+} else {
+    Write-Warn "skeleton/AGENTS.md not found — skipping skills"
+}
+
+# ============================================================================
+# PHASE 3: Create ~/.nous/ structure
+# ============================================================================
+Write-Host ""
+Write-Step "Phase 3/5: Creating ~/.nous/ structure..."
 
 $configDir = Join-Path $NOUS_DIR "config"
-if (-not (Test-Path $configDir)) {
-    New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+$nousSkillsDir = Join-Path $NOUS_DIR "skills"
+if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
+if (-not (Test-Path $nousSkillsDir)) { New-Item -ItemType Directory -Path $nousSkillsDir -Force | Out-Null }
+
+# Copy skills to ~/.nous/skills/ (source for sync command)
+if (Test-Path (Join-Path $SKILLS_DIR "AGENTS.md")) {
+    Copy-Item (Join-Path $SKILLS_DIR "AGENTS.md") $nousSkillsDir -Force
 }
 
 Write-Ok "~/.nous/ ready"
 
 # ============================================================================
-# PHASE 3: Run nous install (detect + inject agent configs)
+# PHASE 4: Run nous install (detect + inject agent configs)
 # ============================================================================
 Write-Host ""
-Write-Step "Phase 3/4: Detecting agents and configuring..."
+Write-Step "Phase 4/5: Detecting agents and configuring..."
 
 $nousExe = Get-Command nous -ErrorAction SilentlyContinue
 if ($nousExe) {
@@ -146,7 +174,7 @@ if ($nousExe) {
 }
 
 # ============================================================================
-# PHASE 4: Summary
+# PHASE 5: Summary
 # ============================================================================
 $nousPath = (Get-Command nous -ErrorAction SilentlyContinue)?.Source ?? "restart shell to activate"
 
@@ -155,13 +183,14 @@ Write-Host "[NOUS] =================================================" -Foregroun
 Write-Host "[NOUS]   NOUS Installation Complete"                      -ForegroundColor Cyan
 Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
 Write-Host ("[NOUS]   {0,-20} {1}" -f "nous binary:", $nousPath)   -ForegroundColor Green
+Write-Host ("[NOUS]   {0,-20} {1}" -f "skills:", $SKILLS_DIR)     -ForegroundColor Green
 Write-Host ("[NOUS]   {0,-20} {1}" -f "config dir:", (Join-Path $NOUS_DIR "config")) -ForegroundColor Green
 Write-Host ""
 Write-Host "[NOUS]   Next steps:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project     # go to any project"
-Write-Host "[NOUS]   nous sdd-init        # activate SDD workflow there (creates openspec/)"
-Write-Host "[NOUS]   nous status          # verify installation"
+Write-Host "[NOUS]   nous sdd-init        # create openspec/ (SDD workflow)"
+Write-Host "[NOUS]   nous sync            # setup dev/ + install AGENTS.md in project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
 Write-Host ""
