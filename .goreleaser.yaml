@@ -1,0 +1,110 @@
+version: 2
+
+project_name: nous
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: nous
+    main: ./cmd/nous
+    binary: nous
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: nous-archive
+    builds:
+      - nous
+    name_template: "nous_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - AGENTS.md
+      - installs/install.sh
+      - installs/install.ps1
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+release:
+  github:
+    owner: nous-cli
+    name: nous
+  draft: false
+  prerelease: auto
+  name_template: "NOUS v{{ .Version }}"
+
+brews:
+  - name: nous
+    repository:
+      owner: nous-cli
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://github.com/nous-cli/nous"
+    description: "AI Ecosystem Configurator — persistent memory, SDD workflow and agent config in one command"
+    license: MIT
+    commit_author:
+      name: nous-releasebot
+      email: bot@nous-cli.dev
+    directory: Formula
+    install: |
+      bin.install "nous"
+    test: |
+      system "#{bin}/nous", "status"
+
+scoops:
+  - name: nous
+    repository:
+      owner: nous-cli
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
+    homepage: "https://github.com/nous-cli/nous"
+    description: "AI Ecosystem Configurator — persistent memory, SDD workflow and agent config in one command"
+    license: MIT
+    commit_author:
+      name: nous-releasebot
+      email: bot@nous-cli.dev
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: "New Features"
+      regexp: "^feat"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^fix"
+      order: 1
+    - title: "Other"
+      order: 999
