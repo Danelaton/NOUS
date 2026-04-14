@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 // AgentAdapter defines interface for agent configuration
@@ -32,15 +31,6 @@ func (b *BaseAdapter) Detect() bool {
 	return false
 }
 
-// hookPath returns the correct hook file for the current OS
-func hookPath(nousDir, hookName string) string {
-	hooksDir := filepath.Join(nousDir, "hooks")
-	if runtime.GOOS == "windows" {
-		return filepath.Join(hooksDir, hookName+".ps1")
-	}
-	return filepath.Join(hooksDir, hookName+".sh")
-}
-
 // ── OpenCode ─────────────────────────────────────────────────────────────────
 
 type OpenCodeAdapter struct{ BaseAdapter }
@@ -57,20 +47,8 @@ func (a *OpenCodeAdapter) Inject(nousDir string) error {
 	home, _ := os.UserHomeDir()
 	configPath := filepath.Join(nousDir, "config", "opencode", "settings.json")
 	config := map[string]interface{}{
-		"mempalace": map[string]interface{}{
-			"enabled": true,
-			"venv":    filepath.Join(nousDir, "venv"),
-		},
-		"hooks": map[string]interface{}{
-			"Stop":       hookPath(nousDir, "mempal_save_hook"),
-			"PreCompact": hookPath(nousDir, "mempal_precompact_hook"),
-		},
 		"openspec": map[string]interface{}{
 			"enabled": true,
-		},
-		"mcp": map[string]interface{}{
-			"enabled": true,
-			"server":  "mempalace",
 		},
 		"paths": map[string]interface{}{
 			"nous": nousDir,
@@ -95,14 +73,6 @@ func NewClaudeAdapter() *ClaudeAdapter {
 func (a *ClaudeAdapter) Inject(nousDir string) error {
 	configPath := filepath.Join(nousDir, "config", "claude", "config.json")
 	config := map[string]interface{}{
-		"mempalace": map[string]interface{}{
-			"enabled": true,
-			"venv":    filepath.Join(nousDir, "venv"),
-		},
-		"hooks": map[string]interface{}{
-			"Stop":       hookPath(nousDir, "mempal_save_hook"),
-			"PreCompact": hookPath(nousDir, "mempal_precompact_hook"),
-		},
 		"openspec": map[string]interface{}{
 			"enabled": true,
 		},
@@ -125,14 +95,6 @@ func NewCursorAdapter() *CursorAdapter {
 func (a *CursorAdapter) Inject(nousDir string) error {
 	configPath := filepath.Join(nousDir, "config", "cursor", "settings.json")
 	config := map[string]interface{}{
-		"mempalace": map[string]interface{}{
-			"enabled": true,
-			"venv":    filepath.Join(nousDir, "venv"),
-		},
-		"hooks": map[string]interface{}{
-			"Stop":       hookPath(nousDir, "mempal_save_hook"),
-			"PreCompact": hookPath(nousDir, "mempal_precompact_hook"),
-		},
 		"openspec": map[string]interface{}{
 			"enabled": true,
 		},
@@ -155,13 +117,8 @@ func NewKiroAdapter() *KiroAdapter {
 func (a *KiroAdapter) Inject(nousDir string) error {
 	configPath := filepath.Join(nousDir, "config", "kiro", "config.json")
 	config := map[string]interface{}{
-		"mempalace": map[string]interface{}{
+		"openspec": map[string]interface{}{
 			"enabled": true,
-			"venv":    filepath.Join(nousDir, "venv"),
-		},
-		"hooks": map[string]interface{}{
-			"Stop":       hookPath(nousDir, "mempal_save_hook"),
-			"PreCompact": hookPath(nousDir, "mempal_precompact_hook"),
 		},
 		"steering": map[string]interface{}{
 			"enabled":       true,
@@ -186,13 +143,8 @@ func NewRooAdapter() *RooAdapter {
 func (a *RooAdapter) Inject(nousDir string) error {
 	configPath := filepath.Join(nousDir, "config", "roo", "config.json")
 	config := map[string]interface{}{
-		"mempalace": map[string]interface{}{
+		"openspec": map[string]interface{}{
 			"enabled": true,
-			"venv":    filepath.Join(nousDir, "venv"),
-		},
-		"hooks": map[string]interface{}{
-			"Stop":       hookPath(nousDir, "mempal_save_hook"),
-			"PreCompact": hookPath(nousDir, "mempal_precompact_hook"),
 		},
 		"subagents": map[string]interface{}{
 			"enabled": true,
