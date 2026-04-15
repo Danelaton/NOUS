@@ -2,10 +2,10 @@
 # Usage:
 #   irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
 #
-# What this installs (all global, nothing in your projects):
-#   %LOCALAPPDATA%\nous\bin\nous.exe    — NOUS binary (added to user PATH)
-#   %LOCALAPPDATA%\nous\skills\       — skills (AGENTS.md)
-#   ~/.nous/config/                    — agent configs
+# What this installs:
+#   %LOCALAPPDATA%\nous\bin\nous.exe — NOUS binary (added to user PATH)
+#   %LOCALAPPDATA%\nous\skills\          — skills (AGENTS.md)
+#   ~/.nous/config/                         — agent configs
 #
 # To activate a project:
 #   cd C:\my-project; nous sdd-init
@@ -13,10 +13,11 @@
 
 $ErrorActionPreference = "SilentlyContinue"
 
+$VERSION = "v2026.4.14.18"
 $GITHUB_OWNER = "nous-cli"
-$GITHUB_REPO  = "nous"
-$SKILLS_DIR   = Join-Path $env:LOCALAPPDATA "nous\skills"
-$NOUS_DIR     = Join-Path $HOME ".nous"
+$GITHUB_REPO = "nous"
+$SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
+$NOUS_DIR = Join-Path $HOME ".nous"
 
 function Write-Step  { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Cyan }
 function Write-Ok    { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Green }
@@ -40,7 +41,7 @@ $NOUS_INSTALLED = $false
 function Install-ViaScoop {
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) { return $false }
     Write-Dim "Installing via Scoop..."
-    scoop bucket add nous-cli https://github.com/nous-cli/scoop-bucket 2>$null
+    scoop bucket add nous-cli https://github.com/Danelaton/scoop-bucket 2>$null
     scoop install nous 2>$null
     return [bool](Get-Command nous -ErrorAction SilentlyContinue)
 }
@@ -50,21 +51,12 @@ function Install-ViaBinary {
     $tmp  = Join-Path $env:TEMP "nous-install-$([System.IO.Path]::GetRandomFileName())"
     New-Item -ItemType Directory -Path $tmp -Force | Out-Null
 
-    try {
-        $release = Invoke-RestMethod "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" -UseBasicParsing
-        $version = $release.tag_name
-    } catch {
-        Write-Warn "Could not fetch latest release"
-        Remove-Item -Recurse -Force $tmp
-        return $false
-    }
-
-    $ver     = $version -replace '^v', ''
+    $ver = $VERSION -replace '^v', ''
     $archive = "nous_${ver}_windows_${arch}.zip"
-    $url     = "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$version/$archive"
+    $url = "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$VERSION/$archive"
     $zipPath = Join-Path $tmp $archive
 
-    Write-Dim "Downloading nous $version (windows/$arch)..."
+    Write-Dim "Downloading nous $VERSION (windows/$arch)..."
     try {
         Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing
     } catch {
@@ -94,7 +86,7 @@ function Install-ViaBinary {
     $env:PATH = "$installDir;$env:PATH"
 
     Remove-Item -Recurse -Force $tmp
-    Write-Ok "nous $version installed to $installDir"
+    Write-Ok "nous $VERSION installed to $installDir"
     return $true
 }
 
@@ -106,7 +98,7 @@ function Install-ViaGo {
     $gobin = Join-Path $env:LOCALAPPDATA "nous\bin"
     New-Item -ItemType Directory -Path $gobin -Force | Out-Null
     $env:GOBIN = $gobin
-    go install "github.com/$GITHUB_OWNER/$GITHUB_REPO/cmd/nous@latest" 2>$null
+    go install "github.com/$GITHUB_OWNER/$GITHUB_REPO/cmd/nous@$VERSION" 2>$null
     $env:PATH = "$gobin;$env:PATH"
     return [bool](Get-Command nous -ErrorAction SilentlyContinue)
 }
@@ -122,23 +114,19 @@ if (-not $NOUS_INSTALLED) {
 }
 
 # ============================================================================
-# PHASE 2: Install skills to %LOCALAPPDATA%\nous\skills\
+# PHASE 2: Install skills from GitHub release
 # ============================================================================
 Write-Host ""
 Write-Step "Phase 2/5: Installing skills..."
 
-# Get the directory where this script lives
-$scriptRoot = if ($PSCommandPath) { Split-Path $PSCommandPath -Parent } else { $PWD }
-$skeletonDir = Join-Path $scriptRoot "skeleton"
-$skeletonAgents = Join-Path $skeletonDir "AGENTS.md"
-
 New-Item -ItemType Directory -Path $SKILLS_DIR -Force | Out-Null
 
-if (Test-Path $skeletonAgents) {
-    Copy-Item $skeletonAgents $SKILLS_DIR -Force
+$AGENTS_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/installs/skeleton/AGENTS.md"
+try {
+    Invoke-WebRequest -Uri $AGENTS_URL -OutFile (Join-Path $SKILLS_DIR "AGENTS.md") -UseBasicParsing
     Write-Ok "AGENTS.md installed"
-} else {
-    Write-Warn "skeleton/AGENTS.md not found — skipping skills"
+} catch {
+    Write-Warn "Could not download AGENTS.md — skipping skills"
 }
 
 # ============================================================================

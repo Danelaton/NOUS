@@ -58,7 +58,7 @@ release:
 brews:
   - name: nous
     repository:
-      owner: nous-cli
+      owner: Danelaton
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
@@ -77,7 +77,7 @@ brews:
 scoops:
   - name: nous
     repository:
-      owner: nous-cli
+      owner: Danelaton
       name: scoop-bucket
       branch: main
       token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"

@@ -5,18 +5,18 @@ set -e
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
 #
-# What this installs (all global, nothing in your projects):
+# What this installs:
 #   ~/.local/bin/nous              — NOUS binary
-#   ~/.local/share/nous/skills/    — skills (AGENTS.md)
+#   ~/.local/share/nous/skills/     — skills (AGENTS.md)
 #   ~/.nous/config/                — agent configs
 #
 # To activate a project:
 #   cd ~/my-project && nous sdd-init
 #   cd ~/my-project && nous sync
 
+VERSION="v2026.4.14.18"
 GITHUB_OWNER="nous-cli"
 GITHUB_REPO="nous"
-BREW_TAP="nous-cli/tap"
 SKILLS_DIR="$HOME/.local/share/nous/skills"
 NOUS_DIR="$HOME/.nous"
 
@@ -27,9 +27,6 @@ success() { echo -e "${G}[NOUS]${N} $*"; }
 warn()    { echo -e "${Y}[NOUS]${N} $*"; }
 err()     { echo -e "${R}[NOUS]${N} $*" >&2; }
 dim()     { echo -e "${D}[NOUS]${N} $*"; }
-
-# ── Resolve installer directory ────────────────────────────────────────────────
-INSTALLER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo ""
 echo -e "${C}=================================================${N}"
@@ -46,7 +43,7 @@ NOUS_INSTALLED=false
 
 install_brew() {
     info "Installing via Homebrew..."
-    brew tap "$BREW_TAP" --quiet 2>/dev/null || true
+    brew tap "$GITHUB_OWNER/tap" --quiet 2>/dev/null || true
     if brew list nous &>/dev/null 2>&1; then
         brew upgrade nous --quiet 2>/dev/null || true
     else
@@ -61,31 +58,33 @@ install_binary() {
     case "$(uname -s)" in Darwin) os="darwin";; Linux) os="linux";; *) return 1;; esac
     case "$(uname -m)" in x86_64|amd64) arch="amd64";; arm64|aarch64) arch="arm64";; *) return 1;; esac
 
-    local version
-    version=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" \
-        2>/dev/null | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-    [ -z "$version" ] && { warn "Could not fetch latest release"; rm -rf "$tmp"; return 1; }
+    local archive="nous_${VERSION#v}_${os}_${arch}.tar.gz"
+    local url="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${VERSION}/${archive}"
 
-    local ver="${version#v}"
-    local archive="nous_${ver}_${os}_${arch}.tar.gz"
-    local url="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${version}/${archive}"
-
-    dim "Downloading nous ${version} (${os}/${arch})..."
-    curl -fsSL "$url" -o "${tmp}/${archive}" 2>/dev/null || { warn "Download failed"; rm -rf "$tmp"; return 1; }
+    dim "Downloading nous ${VERSION} (${os}/${arch})..."
+    curl -fsSL "$url" -o "${tmp}/${archive}" || { warn "Download failed"; rm -rf "$tmp"; return 1; }
     tar -xzf "${tmp}/${archive}" -C "$tmp"
 
-    local install_dir="$HOME/.local/bin"
+    local install_dir="/usr/local/bin"
+    if [ ! -w "$install_dir" ]; then
+        install_dir="$HOME/.local/bin"
+    fi
     mkdir -p "$install_dir"
-    mv "${tmp}/nous" "${install_dir}/nous" 2>/dev/null || mv "${tmp}/nous_${ver}_${os}_${arch}/nous" "${install_dir}/nous"
+    # Binary may be inside a subdirectory
+    if [ -x "${tmp}/nous" ]; then
+        mv "${tmp}/nous" "${install_dir}/nous"
+    else
+        find "${tmp}" -name nous -type f -exec mv {} "${install_dir}/nous" \;
+    fi
     chmod +x "${install_dir}/nous"
     export PATH="${install_dir}:$PATH"
     rm -rf "$tmp"
-    success "nous ${version} installed to ${install_dir}"
+    success "nous ${VERSION} installed to ${install_dir}"
 }
 
 install_go() {
     command -v go &>/dev/null || { err "Go not found — install from https://go.dev/dl/"; return 1; }
-    GOBIN="$HOME/.local/bin" go install "github.com/${GITHUB_OWNER}/${GITHUB_REPO}/cmd/nous@latest"
+    GOBIN="$HOME/.local/bin" go install "github.com/${GITHUB_OWNER}/${GITHUB_REPO}/cmd/nous@${VERSION}"
     export PATH="$HOME/.local/bin:$PATH"
     command -v nous &>/dev/null
 }
@@ -101,17 +100,17 @@ if [ "$NOUS_INSTALLED" = false ]; then
 fi
 
 # ============================================================================
-# PHASE 2: Install skills to ~/.local/share/nous/skills/
+# PHASE 2: Install skills from GitHub release
 # ============================================================================
 echo ""
 info "Phase 2/5: Installing skills..."
 
 mkdir -p "$SKILLS_DIR"
-if [ -f "${INSTALLER_DIR}/skeleton/AGENTS.md" ]; then
-    cp "${INSTALLER_DIR}/skeleton/AGENTS.md" "$SKILLS_DIR/AGENTS.md"
+AGENTS_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${VERSION}/installs/skeleton/AGENTS.md"
+if curl -fsSL "$AGENTS_URL" -o "$SKILLS_DIR/AGENTS.md" 2>/dev/null; then
     success "AGENTS.md installed"
 else
-    warn "skeleton/AGENTS.md not found — skipping skills"
+    warn "Could not download AGENTS.md — skipping skills"
 fi
 
 # ============================================================================
