@@ -14,7 +14,7 @@ set -e
 #   cd ~/my-project && nous sdd-init
 #   cd ~/my-project && nous sync
 
-VERSION="v2026.4.14.18"
+VERSION="v2026.4.14"
 GITHUB_OWNER="nous-cli"
 GITHUB_REPO="nous"
 SKILLS_DIR="$HOME/.local/share/nous/skills"

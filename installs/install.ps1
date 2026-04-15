@@ -13,7 +13,7 @@
 
 $ErrorActionPreference = "SilentlyContinue"
 
-$VERSION = "v2026.4.14.18"
+$VERSION = "v2026.4.14"
 $GITHUB_OWNER = "nous-cli"
 $GITHUB_REPO = "nous"
 $SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
