@@ -46,15 +46,12 @@ func (o *Orchestrator) Run() error {
 	}
 
 	// Phase 2: ensure ~/.nous/skills/ has AGENTS.md
-	// On first install the installer placed it there. If missing, try to restore from
-	// platform-specific skills directory.
 	skillsDstDir := filepath.Join(o.nousDir, "skills")
 	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
 		return fmt.Errorf("failed to create skills directory: %w", err)
 	}
 	dstAgents := filepath.Join(skillsDstDir, "AGENTS.md")
 	if _, err := os.Stat(dstAgents); os.IsNotExist(err) {
-		// Try to restore from platform-specific location
 		var srcDir string
 		if runtime.GOOS == "windows" {
 			srcDir = filepath.Join(os.Getenv("LOCALAPPDATA"), "nous", "skills")
@@ -80,11 +77,11 @@ func (o *Orchestrator) Run() error {
 	return nil
 }
 
-// SetupProject creates the dev/ structure and copies AGENTS.md into the project.
+// SetupProject creates the project structure: dev/, .agent/, and copies AGENTS.md.
 func (o *Orchestrator) SetupProject(projectDir string) error {
 	fmt.Printf("[NOUS] Setting up project structure...\n")
 
-	// 1. Create dev/ with all subdirectories
+	// ── 1. Create dev/ with all subdirectories ──────────────────────────────
 	devDirs := []string{
 		"sandbox",
 		"tmp-repos",
@@ -101,15 +98,88 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 	}
 	fmt.Printf("[NOUS] dev/ structure created\n")
 
-	// 2. Add dev/ to .gitignore if not already present
-	gitignore := filepath.Join(projectDir, ".gitignore")
-	if err := addGitignoreEntry(gitignore, "dev/"); err != nil {
-		fmt.Printf("[NOUS] Warning: could not update .gitignore: %v\n", err)
-	} else {
-		fmt.Printf("[NOUS] dev/ added to .gitignore\n")
+	// ── 2. Create .agent/ directory ─────────────────────────────────────────
+	agentDir := filepath.Join(projectDir, ".agent")
+	agentSkillsDir := filepath.Join(agentDir, "skills")
+	if err := os.MkdirAll(agentSkillsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .agent/: %w", err)
 	}
+	fmt.Printf("[NOUS] .agent/ directory created\n")
 
-	// 3. Backup existing AGENTS.md
+	// ── 3. Create memory files in .agent/ ─────────────────────────────────────
+
+	// .agent/MEMORY.md — AAAK index (empty template)
+	memoryContent := `# NOUS Memory Index
+
+## Meta
+last_updated:
+session_count: 0
+agent_version: v2026.4.14
+
+## Entities (CODED — use AAAK)
+CODE — Full name, role, project association
+
+## Decisions Log
+
+## Current Work
+
+## Open Issues
+
+## Session Log
+
+## Notes (free)
+
+`
+	if err := os.WriteFile(filepath.Join(agentDir, "MEMORY.md"), []byte(memoryContent), 0644); err != nil {
+		return fmt.Errorf("failed to create MEMORY.md: %w", err)
+	}
+	fmt.Printf("[NOUS] .agent/MEMORY.md created\n")
+
+	// .agent/docs_index.md — document map (empty template)
+	docsIndexContent := `# NOUS Document Index
+
+## docs/ (TRACKED — ADRs)
+
+| ADR | Topic | Summary | Date |
+|-----|-------|---------|------|
+
+## dev/docs/ (NOT TRACKED — Logs & References)
+
+| File | Content | Last Updated |
+|------|---------|-------------|
+`
+	if err := os.WriteFile(filepath.Join(agentDir, "docs_index.md"), []byte(docsIndexContent), 0644); err != nil {
+		return fmt.Errorf("failed to create docs_index.md: %w", err)
+	}
+	fmt.Printf("[NOUS] .agent/docs_index.md created\n")
+
+	// ── 4. Create dev/docs/ log files ────────────────────────────────────────
+	devDocsFiles := map[string]string{
+		"session_log.md":    "# Session Log\n\nAppend-only log of agent sessions.\n",
+		"troubleshooting.md": "# Troubleshooting\n\nKnown issues and solutions.\n",
+		"migration_log.md":   "# Migration Log\n\nDatabase and system migrations.\n",
+		"team_context.md":     "# Team Context\n\nRoles, timezones, preferences.\n",
+	}
+	for filename, content := range devDocsFiles {
+		path := filepath.Join(projectDir, "dev", "docs", filename)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+				fmt.Printf("[NOUS] Warning: failed to create dev/docs/%s: %v\n", filename, err)
+			}
+		}
+	}
+	fmt.Printf("[NOUS] dev/docs/ log files created\n")
+
+	// ── 5. Add entries to .gitignore ──────────────────────────────────────────
+	gitignore := filepath.Join(projectDir, ".gitignore")
+	for _, entry := range []string{"dev/", ".agent/"} {
+		if err := addGitignoreEntry(gitignore, entry); err != nil {
+			fmt.Printf("[NOUS] Warning: could not update .gitignore: %v\n", err)
+		}
+	}
+	fmt.Printf("[NOUS] dev/ and .agent/ added to .gitignore\n")
+
+	// ── 6. Backup existing AGENTS.md ─────────────────────────────────────────
 	agentsDst := filepath.Join(projectDir, "AGENTS.md")
 	if _, err := os.Stat(agentsDst); err == nil {
 		ts := time.Now().Format("20060102_150405")
@@ -121,7 +191,7 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 		}
 	}
 
-	// 4. Copy AGENTS.md to project
+	// ── 7. Copy AGENTS.md to project ─────────────────────────────────────────
 	agentsSrc := filepath.Join(o.nousDir, "skills", "AGENTS.md")
 	if _, err := os.Stat(agentsSrc); err != nil {
 		return fmt.Errorf("AGENTS.md not found in ~/.nous/skills/: run 'nous install' first")
@@ -232,7 +302,6 @@ func copyFile(src, dst string) error {
 		return err
 	}
 
-	// Preserve permissions
 	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -242,20 +311,17 @@ func copyFile(src, dst string) error {
 
 // addGitignoreEntry appends an entry to .gitignore if not already present.
 func addGitignoreEntry(gitignorePath, entry string) error {
-	// Check if .gitignore exists
 	var existing []byte
 	if _, err := os.Stat(gitignorePath); err == nil {
 		existing, err = os.ReadFile(gitignorePath)
 		if err != nil {
 			return err
 		}
-		// Check if entry already exists
 		if strings.Contains(string(existing), entry) {
 			return nil
 		}
 	}
 
-	// Append entry
 	f, err := os.OpenFile(gitignorePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -263,8 +329,7 @@ func addGitignoreEntry(gitignorePath, entry string) error {
 	defer f.Close()
 
 	if len(existing) > 0 && !strings.HasSuffix(string(existing), "\n") {
-		_, err = f.WriteString("\n")
-		if err != nil {
+		if _, err := f.WriteString("\n"); err != nil {
 			return err
 		}
 	}
