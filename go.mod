@@ -1,4 +1,4 @@
-module github.com/nous-cli/nous
+module github.com/Danelaton/NOUS
 
 go 1.24
 

@@ -17,13 +17,13 @@ set -e
 GITHUB_OWNER="Danelaton"
 GITHUB_REPO="NOUS"
 
-# Auto-detect latest tag from GitHub API
-VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" 2>/dev/null \
+# Auto-detect latest tag from GitHub API (includes prereleases)
+VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases" 2>/dev/null \
     | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 
 if [ -z "$VERSION" ]; then
     echo "[NOUS] Could not fetch latest release — using default version"
-    VERSION="v2026.4.14"
+    VERSION="v2026.4.14-1"
 fi
 
 SKILLS_DIR="$HOME/.local/share/nous/skills"
@@ -80,7 +80,7 @@ install_binary() {
 
 install_go() {
     command -v go &>/dev/null || { err "Go not found — install from https://go.dev/dl/"; return 1; }
-    GOBIN="$HOME/.local/bin" go install "github.com/${GITHUB_OWNER}/${GITHUB_REPO}/cmd/nous@${VERSION}"
+    GOBIN="$HOME/.local/bin" go install "github.com/Danelaton/NOUS/cmd/nous@${VERSION}"
     export PATH="$HOME/.local/bin:$PATH"
     command -v nous &>/dev/null
 }

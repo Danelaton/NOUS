@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nous-cli/nous/cmd/nous/cli"
+	"github.com/Danelaton/NOUS/cmd/nous/cli"
 )
 
 var version = "dev"

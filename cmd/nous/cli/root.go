@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nous-cli/nous/cmd/nous/install"
+	"github.com/Danelaton/NOUS/cmd/nous/install"
 	"github.com/spf13/cobra"
 )
 
