@@ -19,7 +19,7 @@ GITHUB_REPO="NOUS"
 
 # Auto-detect latest tag from GitHub API
 VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" 2>/dev/null \
-    | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1')
+    | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 
 if [ -z "$VERSION" ]; then
     echo "[NOUS] Could not fetch latest release — using default version"
@@ -49,19 +49,6 @@ echo ""
 # ============================================================================
 info "Phase 1/5: Installing NOUS binary..."
 
-NOUS_INSTALLED=false
-
-install_brew() {
-    info "Installing via Homebrew..."
-    brew tap "${GITHUB_OWNER}/tap" --quiet 2>/dev/null || true
-    if brew list nous &>/dev/null 2>&1; then
-        brew upgrade nous --quiet 2>/dev/null || true
-    else
-        brew install nous --quiet
-    fi
-    command -v nous &>/dev/null
-}
-
 install_binary() {
     local os arch tmp
     tmp="$(mktemp -d)"
@@ -80,7 +67,6 @@ install_binary() {
         install_dir="$HOME/.local/bin"
     fi
     mkdir -p "$install_dir"
-    # Binary may be inside a subdirectory
     if [ -x "${tmp}/nous" ]; then
         mv "${tmp}/nous" "${install_dir}/nous"
     else
@@ -99,18 +85,10 @@ install_go() {
     command -v nous &>/dev/null
 }
 
-if command -v brew &>/dev/null; then
-    install_brew && NOUS_INSTALLED=true || warn "Homebrew install failed — trying binary..."
-fi
-if [ "$NOUS_INSTALLED" = false ]; then
-    install_binary && NOUS_INSTALLED=true || warn "Binary install failed — trying go install..."
-fi
-if [ "$NOUS_INSTALLED" = false ]; then
-    install_go && NOUS_INSTALLED=true || { err "All install methods failed."; exit 1; }
-fi
+install_binary && success "Binary installed" || install_go && success "Installed via go install" || { err "All install methods failed."; exit 1; }
 
 # ============================================================================
-# PHASE 2: Install skills from GitHub release
+# PHASE 2: Install skills from GitHub
 # ============================================================================
 echo ""
 info "Phase 2/5: Installing skills..."
@@ -132,7 +110,6 @@ info "Phase 3/5: Creating ~/.nous/ structure..."
 mkdir -p "$NOUS_DIR/config"
 mkdir -p "$NOUS_DIR/skills"
 
-# Copy skills to ~/.nous/skills/ (source for sync command)
 if [ -f "$SKILLS_DIR/AGENTS.md" ]; then
     cp "$SKILLS_DIR/AGENTS.md" "$NOUS_DIR/skills/AGENTS.md"
 fi
