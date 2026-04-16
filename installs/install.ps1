@@ -3,9 +3,9 @@
 #   irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
 #
 # What this installs:
-#   %LOCALAPPDATA%\nous\bin\nous.exe — NOUS binary (added to user PATH)
-#   %LOCALAPPDATA%\nous\skills\          — skills (AGENTS.md)
-#   ~/.nous/config/                         — agent configs
+#   $env:LOCALAPPDATA\nous\bin\nous.exe — NOUS binary (added to user PATH)
+#   $env:LOCALAPPDATA\nous\skills          — skills (AGENTS.md)
+#   $HOME/.nous/config                         — agent configs
 #
 # To activate a project:
 #   cd C:\my-project; nous sdd-init
@@ -13,9 +13,18 @@
 
 $ErrorActionPreference = "SilentlyContinue"
 
-$VERSION = "v2026.4.14"
 $GITHUB_OWNER = "Danelaton"
 $GITHUB_REPO = "NOUS"
+
+# Auto-detect latest tag from GitHub API
+$VERSION = try {
+    $release = Invoke-RestMethod "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" -UseBasicParsing
+    $release.tag_name
+} catch {
+    Write-Warn "Could not fetch latest release — using default version"
+    "v2026.4.14"
+}
+
 $SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
 $NOUS_DIR = Join-Path $HOME ".nous"
 
@@ -26,9 +35,10 @@ function Write-Err   { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Red
 function Write-Dim   { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Gray }
 
 Write-Host ""
-Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
+Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
 Write-Host "[NOUS]   NOUS - AI Ecosystem Configurator"               -ForegroundColor Cyan
-Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
+Write-Host "[NOUS]   Version: $VERSION"                          -ForegroundColor Cyan
+Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ============================================================================
@@ -170,6 +180,7 @@ $nousPath = if ($nousCmd) { $nousCmd.Source } else { "restart shell to activate"
 Write-Host ""
 Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
 Write-Host "[NOUS]   NOUS Installation Complete"                      -ForegroundColor Cyan
+Write-Host "[NOUS]   Version: $VERSION"                            -ForegroundColor Cyan
 Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
 Write-Host ("[NOUS]   {0,-20} {1}" -f "nous binary:", $nousPath)   -ForegroundColor Green
 Write-Host ("[NOUS]   {0,-20} {1}" -f "skills:", $SKILLS_DIR)     -ForegroundColor Green

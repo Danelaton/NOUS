@@ -14,9 +14,18 @@ set -e
 #   cd ~/my-project && nous sdd-init
 #   cd ~/my-project && nous sync
 
-VERSION="v2026.4.14"
 GITHUB_OWNER="Danelaton"
 GITHUB_REPO="NOUS"
+
+# Auto-detect latest tag from GitHub API
+VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" 2>/dev/null \
+    | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1')
+
+if [ -z "$VERSION" ]; then
+    echo "[NOUS] Could not fetch latest release — using default version"
+    VERSION="v2026.4.14"
+fi
+
 SKILLS_DIR="$HOME/.local/share/nous/skills"
 NOUS_DIR="$HOME/.nous"
 
@@ -31,6 +40,7 @@ dim()     { echo -e "${D}[NOUS]${N} $*"; }
 echo ""
 echo -e "${C}=================================================${N}"
 echo -e "${C}  NOUS — AI Ecosystem Configurator${N}"
+echo -e "${C}  Version: ${VERSION}${N}"
 echo -e "${C}=================================================${N}"
 echo ""
 
@@ -43,7 +53,7 @@ NOUS_INSTALLED=false
 
 install_brew() {
     info "Installing via Homebrew..."
-    brew tap "$GITHUB_OWNER/tap" --quiet 2>/dev/null || true
+    brew tap "${GITHUB_OWNER}/tap" --quiet 2>/dev/null || true
     if brew list nous &>/dev/null 2>&1; then
         brew upgrade nous --quiet 2>/dev/null || true
     else
@@ -147,6 +157,7 @@ fi
 echo ""
 echo -e "${C}=================================================${N}"
 echo -e "${C}  NOUS Installation Complete${N}"
+echo -e "${C}  Version: ${VERSION}${N}"
 echo -e "${C}=================================================${N}"
 printf "  ${G}%-20s${N} %s\n" "nous binary:" "$(command -v nous 2>/dev/null || echo 'restart shell to activate')"
 printf "  ${G}%-20s${N} %s\n" "skills:" "$SKILLS_DIR"
