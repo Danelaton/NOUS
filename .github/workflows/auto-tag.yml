@@ -1,0 +1,26 @@
+name: Auto Tag on Push to Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate and push tag
+        run: |
+          TAG="v$(date -u +'%Y.%m.%d.%H%M')"
+          echo "Creating tag: $TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

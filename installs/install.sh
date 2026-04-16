@@ -17,8 +17,8 @@ set -e
 GITHUB_OWNER="Danelaton"
 GITHUB_REPO="NOUS"
 
-# Auto-detect latest tag from GitHub API (includes prereleases)
-VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases" 2>/dev/null \
+# Auto-detect latest tag from GitHub API
+VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest" 2>/dev/null \
     | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 
 if [ -z "$VERSION" ]; then

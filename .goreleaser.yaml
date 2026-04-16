@@ -52,41 +52,8 @@ release:
     owner: Danelaton
     name: NOUS
   draft: false
-  prerelease: auto
+  prerelease: false
   name_template: "NOUS v{{ .Version }}"
-
-brews:
-  - name: nous
-    repository:
-      owner: Danelaton
-      name: homebrew-tap
-      branch: main
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://github.com/Danelaton/NOUS"
-    description: "AI Ecosystem Configurator — persistent memory, SDD workflow and agent config in one command"
-    license: MIT
-    commit_author:
-      name: nous-releasebot
-      email: bot@nous-cli.dev
-    directory: Formula
-    install: |
-      bin.install "nous"
-    test: |
-      system "#{bin}/nous", "status"
-
-scoops:
-  - name: nous
-    repository:
-      owner: Danelaton
-      name: scoop-bucket
-      branch: main
-      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
-    homepage: "https://github.com/Danelaton/NOUS"
-    description: "AI Ecosystem Configurator — persistent memory, SDD workflow and agent config in one command"
-    license: MIT
-    commit_author:
-      name: nous-releasebot
-      email: bot@nous-cli.dev
 
 changelog:
   sort: asc

@@ -18,15 +18,13 @@ $GITHUB_REPO = "NOUS"
 $SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
 $NOUS_DIR = Join-Path $HOME ".nous"
 
-# Auto-detect latest tag from GitHub API (includes prereleases)
+# Auto-detect latest tag from GitHub API
 $VERSION = try {
-    $releases = Invoke-RestMethod "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases" -UseBasicParsing
-    if ($releases -and $releases.Count -gt 0) { $releases[0].tag_name } else { $null }
-} catch { $null }
-
-if (-not $VERSION) {
+    $release = Invoke-RestMethod "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" -UseBasicParsing
+    $release.tag_name
+} catch {
     Write-Host "[NOUS] Could not fetch latest release — using default version" -ForegroundColor Yellow
-    $VERSION = "v2026.4.14-1"
+    "v2026.4.14-1"
 }
 
 function Write-Step  { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Cyan }
