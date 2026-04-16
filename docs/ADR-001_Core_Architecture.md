@@ -90,8 +90,8 @@ Each adapter:
 **Decision**: Distribution via shell scripts that bootstrap the binary from GitHub Releases:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
-irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
+curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
+irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
 ```
 
 The script downloads the pre-built binary from the GitHub Release and runs `nous install`.

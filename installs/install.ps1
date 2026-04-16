@@ -1,6 +1,6 @@
 # NOUS Installer for Windows (PowerShell)
 # Usage:
-#   irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
 #
 # What this installs:
 #   %LOCALAPPDATA%\nous\bin\nous.exe — NOUS binary (added to user PATH)
@@ -14,8 +14,8 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 $VERSION = "v2026.4.14"
-$GITHUB_OWNER = "nous-cli"
-$GITHUB_REPO = "nous"
+$GITHUB_OWNER = "Danelaton"
+$GITHUB_REPO = "NOUS"
 $SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
 $NOUS_DIR = Join-Path $HOME ".nous"
 

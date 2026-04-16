@@ -11,21 +11,20 @@ NOUS is a CLI that gives your AI coding agents a **Spec-Driven Development (SDD)
 NOUS installs **once on your machine** and enhances every project you work on:
 
 ```
-curl | bash / irm | iex
+curl -fsSL .../install.sh | bash
         │
         ▼
-~/.local/bin/nous       ← binary added to your PATH
-~/.nous/config/         ← agent configs (injected only for detected agents)
+~/.local/bin/nous              ← binary added to your PATH
+~/.nous/config/                ← agent configs (injected only for detected agents)
 
         │  (opt-in, per project)
         ▼
 cd ~/my-project && nous sdd-init
-  openspec/
-    specs/SPEC.md            ← write your spec before coding
-    changes/CHG_001.md      ← propose changes here
+  openspec/specs/SPEC.md            ← write your spec before coding
+  openspec/changes/CHG_001.md     ← propose changes here
 ```
 
-Your projects stay clean. NOUS never writes inside them unless you explicitly run `nous sdd-init`.
+Your projects stay clean. NOUS never writes inside them unless you explicitly run `sdd-init`.
 
 ---
 
@@ -35,26 +34,26 @@ Your projects stay clean. NOUS never writes inside them unless you explicitly ru
 
 **Homebrew (recommended — manages updates)**
 ```bash
-brew tap nous-cli/tap
+brew tap Danelaton/tap
 brew install nous
 ```
 
 **One-liner**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
 ```
 
 ### Windows
 
 **Scoop (recommended — manages updates)**
 ```powershell
-scoop bucket add nous-cli https://github.com/nous-cli/scoop-bucket
+scoop bucket add nous-cli https://github.com/Danelaton/scoop-bucket
 scoop install nous
 ```
 
 **PowerShell one-liner**
 ```powershell
-irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
+irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
 ```
 
 After either method, verify with:
@@ -89,7 +88,7 @@ nous status
     roo/config.json             ← if Roo is installed
 ```
 
-**Nothing is placed in your projects** until you explicitly run `nous sdd-init`.
+**Nothing is placed in your projects** until you explicitly run `sdd-init`.
 
 ---
 
@@ -99,15 +98,16 @@ Run **once per project** inside your project directory:
 
 ```bash
 cd ~/my-project
-nous sdd-init
-# → creates openspec/ here, nothing else
+nous sdd-init    # → creates openspec/specs/ + openspec/changes/
+nous sync        # → creates dev/ + .agent/ + copies AGENTS.md
 ```
 
 | Command | What it creates | When to re-run |
 |---------|----------------|----------------|
 | `nous sdd-init` | `openspec/specs/SPEC.md` + `openspec/changes/` | First time in a new project |
+| `nous sync` | `dev/` (6 subdirs) + `.agent/` (memory system) + `AGENTS.md` | First time in a new project |
 
-> Add `openspec/` to your `.gitignore` if you prefer not to track it, or commit it as part of your SDD workflow.
+> Add `dev/` and `.agent/` to your `.gitignore` — they are local working state, not tracked.
 
 ---
 
@@ -117,7 +117,7 @@ nous sdd-init
 |---------|-------|-------------|
 | `nous install` | Global | Detect agents and inject NOUS configuration |
 | `nous status` | Global | Show system and detected agents |
-| `nous sync` | Global | Re-inject agent configurations |
+| `nous sync` | Global | Sync project structure + re-inject agent configs |
 | `nous sdd-init` | Project | Create `openspec/` in the current directory |
 
 ---
@@ -151,20 +151,30 @@ Run `nous install` after installing a new agent to inject its config.
 - Configures the agent to recognize and use the `openspec/` structure
 - Works with whatever model the agent already has configured
 
+### Persistent Memory System
+- `.agent/MEMORY.md` — AAAK-encoded index of entities, decisions, and work
+- `.agent/docs_index.md` — map of all documentation
+- Auto-persist every 15 messages without asking
+- Session start: reads MEMORY.md + docs_index.md before anything else
+
+### Document Knowledge System
+- `docs/` (tracked) — Architectural Decision Records (ADRs)
+- `dev/docs/` (not tracked) — session logs, migrations, troubleshooting
+
 ---
 
 ## Architecture
 
 ```
 NOUS CLI (Go 1.24)
-├── cmd/nous/cli/          # cobra commands: install, status, sync, sdd-init
+├── cmd/nous/cli/          # commands: install, status, sync, sdd-init
 ├── cmd/nous/install/      # orchestrator, detector, openspec generator
 └── pkg/config/           # per-agent adapters
 
 Distribution
-├── Homebrew tap           # nous-cli/homebrew-tap — Formula/nous.rb
-├── Scoop bucket           # nous-cli/scoop-bucket — nous.json
-└── GoReleaser             # cross-compile: linux/darwin/windows × amd64/arm64
+├── Homebrew tap           # Danelaton/homebrew-tap — Formula/nous.rb
+├── Scoop bucket           # Danelaton/scoop-bucket — nous.json
+└── GoReleaser            # cross-compile: linux/darwin/windows × amd64/arm64
 ```
 
 ---
@@ -172,8 +182,8 @@ Distribution
 ## Development
 
 ```bash
-git clone https://github.com/nous-cli/nous
-cd nous
+git clone https://github.com/Danelaton/NOUS
+cd NOUS
 
 go build -o nous ./cmd/nous    # or nous.exe on Windows
 ./nous status
@@ -182,12 +192,12 @@ go build -o nous ./cmd/nous    # or nous.exe on Windows
 
 **Release flow** (maintainers only)
 ```bash
-git tag v0.x.0 -m "release: v0.x.0"
+git tag v0.x.0
 git push origin v0.x.0
 # GoReleaser CI builds all targets and publishes:
 #   → GitHub Releases (binaries + checksums)
-#   → nous-cli/homebrew-tap (Formula auto-updated)
-#   → nous-cli/scoop-bucket (manifest auto-updated)
+#   → Danelaton/homebrew-tap (Formula auto-updated)
+#   → Danelaton/scoop-bucket (manifest auto-updated)
 ```
 
 ---
@@ -196,8 +206,12 @@ git push origin v0.x.0
 
 | File | Description |
 |------|-------------|
-| [`AGENTS.md`](./AGENTS.md) | Agent identity, SDD protocol, AAAK dialect, configuration reference |
-| [`docs/ADR_001_Architecture_Decisions.md`](./docs/ADR_001_Architecture_Decisions.md) | Architecture decision records |
+| [`AGENTS.md`](./AGENTS.md) | Agent identity, SDD protocol, AAAK dialect, memory system |
+| [`docs/ADR-001_Core_Architecture.md`](./docs/ADR-001_Core_Architecture.md) | Core architecture decisions |
+| [`docs/ADR-002_Memory_System.md`](./docs/ADR-002_Memory_System.md) | Memory system design |
+| [`docs/ADR-003_Document_Knowledge_System.md`](./docs/ADR-003_Document_Knowledge_System.md) | Document knowledge layers |
+| [`docs/ADR-004_AGENTS_System_Prompt.md`](./docs/ADR-004_AGENTS_System_Prompt.md) | System prompt structure |
+| [`docs/ADR-005_Distribution_and_Tooling.md`](./docs/ADR-005_Distribution_and_Tooling.md) | Distribution and tooling |
 
 ---
 

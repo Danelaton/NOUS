@@ -17,10 +17,10 @@ NOUS must be installable with a single command on macOS, Linux, and Windows. Dis
 
 ```
 # macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
 
 # Windows
-irm https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.ps1 | iex
+irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
 ```
 
 The script downloads the pre-built binary from GitHub Releases, places it in PATH, and runs `nous install`.

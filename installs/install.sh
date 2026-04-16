@@ -3,7 +3,7 @@ set -e
 
 # NOUS Installer for macOS / Linux
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/nous-cli/nous/main/installs/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
 #
 # What this installs:
 #   ~/.local/bin/nous              — NOUS binary
@@ -15,8 +15,8 @@ set -e
 #   cd ~/my-project && nous sync
 
 VERSION="v2026.4.14"
-GITHUB_OWNER="nous-cli"
-GITHUB_REPO="nous"
+GITHUB_OWNER="Danelaton"
+GITHUB_REPO="NOUS"
 SKILLS_DIR="$HOME/.local/share/nous/skills"
 NOUS_DIR="$HOME/.nous"
 
