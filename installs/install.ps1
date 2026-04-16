@@ -164,7 +164,8 @@ if ($nousExe) {
 # ============================================================================
 # PHASE 5: Summary
 # ============================================================================
-$nousPath = (Get-Command nous -ErrorAction SilentlyContinue)?.Source ?? "restart shell to activate"
+$nousCmd = Get-Command nous -ErrorAction SilentlyContinue
+$nousPath = if ($nousCmd) { $nousCmd.Source } else { "restart shell to activate" }
 
 Write-Host ""
 Write-Host "[NOUS] =================================================" -ForegroundColor Cyan
