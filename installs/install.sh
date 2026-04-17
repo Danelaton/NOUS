@@ -7,7 +7,7 @@ set -e
 #
 # What this installs:
 #   ~/.local/bin/nous              — NOUS binary
-#   ~/.local/share/nous/skills/     — skills (AGENTS.md)
+#   ~/.nous/skills/                — skills (AGENTS.md)
 #   ~/.nous/config/                — agent configs
 #
 # To activate a project:
@@ -22,27 +22,27 @@ VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO
     | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 
 if [ -z "$VERSION" ]; then
-    echo "[NOUS] Could not fetch latest release — using default version"
+    printf "[NOUS] Could not fetch latest release — using default version\n"
     VERSION="v2026.4.14-1"
 fi
 
-SKILLS_DIR="$HOME/.local/share/nous/skills"
+SKILLS_DIR="$HOME/.nous/skills"
 NOUS_DIR="$HOME/.nous"
 
-# ── Colors ────────────────────────────────────────────────────────────────────
+# ── Colors (using printf for macOS compatibility) ────────────────────────────
 R='\033[0;31m' Y='\033[1;33m' G='\033[0;32m' C='\033[0;36m' D='\033[0;90m' N='\033[0m'
-info()    { echo -e "${C}[NOUS]${N} $*"; }
-success() { echo -e "${G}[NOUS]${N} $*"; }
-warn()    { echo -e "${Y}[NOUS]${N} $*"; }
-err()     { echo -e "${R}[NOUS]${N} $*" >&2; }
-dim()     { echo -e "${D}[NOUS]${N} $*"; }
+info()    { printf "${C}[NOUS]${N} %s\n" "$*"; }
+success() { printf "${G}[NOUS]${N} %s\n" "$*"; }
+warn()    { printf "${Y}[NOUS]${N} %s\n" "$*"; }
+err()     { printf "${R}[NOUS]${N} %s\n" "$*" >&2; }
+dim()     { printf "${D}[NOUS]${N} %s\n" "$*"; }
 
-echo ""
-echo -e "${C}=================================================${N}"
-echo -e "${C}  NOUS — AI Ecosystem Configurator${N}"
-echo -e "${C}  Version: ${VERSION}${N}"
-echo -e "${C}=================================================${N}"
-echo ""
+printf "\n"
+printf "${C}=================================================${N}\n"
+printf "${C}  NOUS — AI Ecosystem Configurator${N}\n"
+printf "${C}  Version: ${VERSION}${N}\n"
+printf "${C}=================================================${N}\n"
+printf "\n"
 
 # ============================================================================
 # PHASE 1: Install NOUS binary
@@ -59,7 +59,11 @@ install_binary() {
     local url="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${VERSION}/${archive}"
 
     dim "Downloading nous ${VERSION} (${os}/${arch})..."
-    curl -fsSL "$url" -o "${tmp}/${archive}" || { warn "Download failed"; rm -rf "$tmp"; return 1; }
+    if ! curl -fsSL "$url" -o "${tmp}/${archive}"; then
+        warn "Download failed"
+        rm -rf "$tmp"
+        return 1
+    fi
     tar -xzf "${tmp}/${archive}" -C "$tmp"
 
     local install_dir="/usr/local/bin"
@@ -75,22 +79,38 @@ install_binary() {
     chmod +x "${install_dir}/nous"
     export PATH="${install_dir}:$PATH"
     rm -rf "$tmp"
-    success "nous ${VERSION} installed to ${install_dir}"
+    return 0
 }
 
 install_go() {
-    command -v go &>/dev/null || { err "Go not found — install from https://go.dev/dl/"; return 1; }
+    if ! command -v go &>/dev/null; then
+        err "Go not found — install from https://go.dev/dl/"
+        return 1
+    fi
     GOBIN="$HOME/.local/bin" go install "github.com/Danelaton/NOUS/cmd/nous@${VERSION}"
     export PATH="$HOME/.local/bin:$PATH"
     command -v nous &>/dev/null
 }
 
-install_binary && success "Binary installed" || install_go && success "Installed via go install" || { err "All install methods failed."; exit 1; }
+NOUS_INSTALLED=false
+if install_binary; then
+    success "Binary installed"
+    NOUS_INSTALLED=true
+elif install_go; then
+    success "Installed via go install"
+    NOUS_INSTALLED=true
+fi
+
+if [ "$NOUS_INSTALLED" = false ]; then
+    err "All install methods failed."
+    err "Download manually from: https://github.com/Danelaton/NOUS/releases"
+    exit 1
+fi
 
 # ============================================================================
 # PHASE 2: Install skills from GitHub
 # ============================================================================
-echo ""
+printf "\n"
 info "Phase 2/5: Installing skills..."
 
 mkdir -p "$SKILLS_DIR"
@@ -104,7 +124,7 @@ fi
 # ============================================================================
 # PHASE 3: Create ~/.nous/ structure
 # ============================================================================
-echo ""
+printf "\n"
 info "Phase 3/5: Creating ~/.nous/ structure..."
 
 mkdir -p "$NOUS_DIR/config"
@@ -119,7 +139,7 @@ success "~/.nous/ ready"
 # ============================================================================
 # PHASE 4: Run nous install (detect + inject agent configs)
 # ============================================================================
-echo ""
+printf "\n"
 info "Phase 4/5: Detecting agents and configuring..."
 
 if command -v nous &>/dev/null; then
@@ -131,20 +151,29 @@ fi
 # ============================================================================
 # PHASE 5: Summary
 # ============================================================================
-echo ""
-echo -e "${C}=================================================${N}"
-echo -e "${C}  NOUS Installation Complete${N}"
-echo -e "${C}  Version: ${VERSION}${N}"
-echo -e "${C}=================================================${N}"
+printf "\n"
+printf "${C}=================================================${N}\n"
+printf "${C}  NOUS Installation Complete${N}\n"
+printf "${C}  Version: ${VERSION}${N}\n"
+printf "${C}=================================================${N}\n"
 printf "  ${G}%-20s${N} %s\n" "nous binary:" "$(command -v nous 2>/dev/null || echo 'restart shell to activate')"
 printf "  ${G}%-20s${N} %s\n" "skills:" "$SKILLS_DIR"
 printf "  ${G}%-20s${N} %s\n" "config dir:" "$NOUS_DIR/config"
-echo ""
-echo -e "${C}  Next steps:${N}"
-echo ""
+printf "\n"
+printf "${C}  Next steps:${N}\n"
+printf "\n"
 printf "  %-25s %s\n" "cd ~/my-project" "go to any project"
 printf "  %-25s %s\n" "nous sdd-init" "create openspec/ (SDD workflow)"
 printf "  %-25s %s\n" "nous sync" "setup dev/ + install AGENTS.md in project"
-echo ""
-echo -e "${D}  Restart your shell or run: export PATH=\"\$HOME/.local/bin:\$PATH\"${N}"
-echo ""
+printf "\n"
+
+# ── PATH hint: detect shell and show correct rc file ──────────────────────
+if [ -n "$ZSH_VERSION" ]; then
+    RC="~/.zshrc"
+elif [ -n "$BASH_VERSION" ]; then
+    RC="~/.bash_profile"
+else
+    RC="~/.profile"
+fi
+printf "  ${D}Add to %s: export PATH=\"\$HOME/.local/bin:\$PATH\"${N}\n" "$RC"
+printf "\n"
