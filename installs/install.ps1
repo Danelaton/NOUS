@@ -127,6 +127,14 @@ try {
     Write-Warn "Could not download AGENTS.md — skipping skills"
 }
 
+$ENGRAM_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/installs/skeleton/ENGRAM.md"
+try {
+    Invoke-WebRequest -Uri $ENGRAM_URL -OutFile (Join-Path $SKILLS_DIR "ENGRAM.md") -UseBasicParsing
+    Write-Ok "ENGRAM.md installed"
+} catch {
+    Write-Warn "Could not download ENGRAM.md — skipping"
+}
+
 # ============================================================================
 # PHASE 3: Create ~/.nous/ structure
 # ============================================================================

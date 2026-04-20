@@ -111,15 +111,52 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 			}
 			projectDir = cwd
 		}
+
+		// Check if this is first-time setup (no .agent/ yet)
+		agentDir := filepath.Join(projectDir, ".agent")
+		isFirstTime := true
+		if _, err := os.Stat(agentDir); err == nil {
+			isFirstTime = false
+		}
+
+		opts := install.SyncOptions{}
+
+		// Flags override interactive prompt
+		engramFlag, _ := cmd.Flags().GetBool("engram")
+		aaakFlag, _ := cmd.Flags().GetBool("aaak")
+
+		if engramFlag {
+			opts.MemorySystem = "engram"
+		} else if aaakFlag {
+			opts.MemorySystem = "aaak"
+		} else if isFirstTime {
+			// Interactive prompt for first-time setup
+			fmt.Println("[NOUS] Select memory system:")
+			fmt.Println("  [1] AAAK — native memory system with AAAK dialect (default)")
+			fmt.Println("  [2] Engram — Engram-based persistent memory via MCP")
+			fmt.Print("[NOUS] Enter choice (1/2) [1]: ")
+
+			var choice string
+			fmt.Scanln(&choice)
+			if choice == "2" {
+				opts.MemorySystem = "engram"
+			} else {
+				opts.MemorySystem = "aaak"
+			}
+		} else {
+			// Subsequent syncs — default to AAAK
+			opts.MemorySystem = "aaak"
+		}
+
 		orch, err := install.NewOrchestrator()
 		if err != nil {
 			return err
 		}
-		if err := orch.SetupProject(projectDir); err != nil {
+		if err := orch.SetupProject(projectDir, opts); err != nil {
 			return err
 		}
 		if err := orch.SyncAgents(); err != nil {
-			return err
+			fmt.Printf("[NOUS] Warning: agent sync: %v\n", err)
 		}
 		fmt.Printf("[NOUS] Project ready: %s\n", projectDir)
 		return nil
@@ -130,6 +167,8 @@ func init() {
 	rootCmd.AddCommand(installCmd, statusCmd, sddInitCmd, syncCmd)
 	sddInitCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
 	syncCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
+	syncCmd.Flags().Bool("engram", false, "Use Engram memory system instead of AAAK")
+	syncCmd.Flags().Bool("aaak", false, "Use AAAK memory system (default)")
 }
 
 func Execute() {

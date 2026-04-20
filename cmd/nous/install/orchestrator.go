@@ -77,9 +77,18 @@ func (o *Orchestrator) Run() error {
 	return nil
 }
 
+// SyncOptions controls what gets installed during nous sync.
+type SyncOptions struct {
+	MemorySystem string // "aaak" (default) or "engram"
+}
+
 // SetupProject creates the project structure: dev/, .agent/, and copies AGENTS.md.
-func (o *Orchestrator) SetupProject(projectDir string) error {
+func (o *Orchestrator) SetupProject(projectDir string, opts SyncOptions) error {
 	fmt.Printf("[NOUS] Setting up project structure...\n")
+
+	if opts.MemorySystem == "" {
+		opts.MemorySystem = "aaak" // default
+	}
 
 	// ── 1. Create dev/ with all subdirectories ──────────────────────────────
 	devDirs := []string{
@@ -107,9 +116,9 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 	fmt.Printf("[NOUS] .agent/ directory created\n")
 
 	// ── 3. Create memory files in .agent/ ─────────────────────────────────────
-
-	// .agent/MEMORY.md — AAAK index (empty template)
-	memoryContent := `# NOUS Memory Index
+	if opts.MemorySystem == "aaak" {
+		// .agent/MEMORY.md — AAAK index (empty template)
+		memoryContent := `# NOUS Memory Index
 
 ## Meta
 last_updated:
@@ -130,13 +139,13 @@ CODE — Full name, role, project association
 ## Notes (free)
 
 `
-	if err := os.WriteFile(filepath.Join(agentDir, "MEMORY.md"), []byte(memoryContent), 0644); err != nil {
-		return fmt.Errorf("failed to create MEMORY.md: %w", err)
-	}
-	fmt.Printf("[NOUS] .agent/MEMORY.md created\n")
+		if err := os.WriteFile(filepath.Join(agentDir, "MEMORY.md"), []byte(memoryContent), 0644); err != nil {
+			return fmt.Errorf("failed to create MEMORY.md: %w", err)
+		}
+		fmt.Printf("[NOUS] .agent/MEMORY.md created\n")
 
-	// .agent/docs_index.md — document map (empty template)
-	docsIndexContent := `# NOUS Document Index
+		// .agent/docs_index.md — document map (empty template)
+		docsIndexContent := `# NOUS Document Index
 
 ## docs/ (TRACKED — ADRs)
 
@@ -148,10 +157,23 @@ CODE — Full name, role, project association
 | File | Content | Last Updated |
 |------|---------|-------------|
 `
-	if err := os.WriteFile(filepath.Join(agentDir, "docs_index.md"), []byte(docsIndexContent), 0644); err != nil {
-		return fmt.Errorf("failed to create docs_index.md: %w", err)
+		if err := os.WriteFile(filepath.Join(agentDir, "docs_index.md"), []byte(docsIndexContent), 0644); err != nil {
+			return fmt.Errorf("failed to create docs_index.md: %w", err)
+		}
+		fmt.Printf("[NOUS] .agent/docs_index.md created\n")
+	} else {
+		// Engram: create a marker file instead of AAAK memory files
+		engramMarker := `# Engram Memory System
+
+This project uses Engram for persistent memory via MCP.
+AAAK memory files (.agent/MEMORY.md, .agent/docs_index.md) are not created.
+Engram manages its own SQLite storage at ~/.engram/engram.db
+`
+		if err := os.WriteFile(filepath.Join(agentDir, "ENGRAM.md"), []byte(engramMarker), 0644); err != nil {
+			return fmt.Errorf("failed to create ENGRAM.md marker: %w", err)
+		}
+		fmt.Printf("[NOUS] .agent/ENGRAM.md marker created (Engram mode)\n")
 	}
-	fmt.Printf("[NOUS] .agent/docs_index.md created\n")
 
 	// ── 4. Create dev/docs/ log files ────────────────────────────────────────
 	devDocsFiles := map[string]string{
@@ -191,15 +213,19 @@ CODE — Full name, role, project association
 		}
 	}
 
-	// ── 7. Copy AGENTS.md to project ─────────────────────────────────────────
-	agentsSrc := filepath.Join(o.nousDir, "skills", "AGENTS.md")
+	// ── 7. Copy AGENTS.md (or ENGRAM.md) to project ─────────────────────────────────
+	agentsSrcFile := "AGENTS.md"
+	if opts.MemorySystem == "engram" {
+		agentsSrcFile = "ENGRAM.md"
+	}
+	agentsSrc := filepath.Join(o.nousDir, "skills", agentsSrcFile)
 	if _, err := os.Stat(agentsSrc); err != nil {
-		return fmt.Errorf("AGENTS.md not found in ~/.nous/skills/: run 'nous install' first")
+		return fmt.Errorf("%s not found in ~/.nous/skills/: run 'nous install' first", agentsSrcFile)
 	}
 	if err := copyFile(agentsSrc, agentsDst); err != nil {
-		return fmt.Errorf("failed to copy AGENTS.md to project: %w", err)
+		return fmt.Errorf("failed to copy %s to project: %w", agentsSrcFile, err)
 	}
-	fmt.Printf("[NOUS] AGENTS.md installed in project\n")
+	fmt.Printf("[NOUS] %s installed in project\n", agentsSrcFile)
 
 	return nil
 }

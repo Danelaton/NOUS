@@ -121,6 +121,13 @@ else
     warn "Could not download AGENTS.md — skipping skills"
 fi
 
+ENGRAM_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${VERSION}/installs/skeleton/ENGRAM.md"
+if curl -fsSL "$ENGRAM_URL" -o "$SKILLS_DIR/ENGRAM.md" 2>/dev/null; then
+    success "ENGRAM.md installed"
+else
+    warn "Could not download ENGRAM.md — skipping"
+fi
+
 # ============================================================================
 # PHASE 3: Create ~/.nous/ structure
 # ============================================================================
