@@ -6,14 +6,48 @@ NOUS is a CLI that gives your AI coding agents a **Spec-Driven Development (SDD)
 
 ---
 
+## Quick Start
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
+```
+
+### Windows
+
+```powershell
+irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
+```
+
+After installing, verify with:
+```bash
+nous status
+```
+
+---
+
+## Install Methods
+
+| Command | OS | Notes |
+|---------|----|-------|
+| `curl -fsSL .../install.sh \| bash` | macOS / Linux | Downloads binary from latest GitHub release |
+| `irm .../install.ps1 \| iex` | Windows | PowerShell one-liner |
+
+Both scripts auto-detect the latest release and install to:
+- **Binary:** `~/.local/bin/nous` (macOS/Linux) or `$env:LOCALAPPDATA\nous\bin\nous.exe` (Windows)
+- **Skills:** `~/.nous/skills/`
+- **Config:** `~/.nous/config/`
+
+To update: re-run the same install command.
+
+---
+
 ## How it works
 
 NOUS installs **once on your machine** and enhances every project you work on:
 
 ```
-curl -fsSL .../install.sh | bash
-        │
-        ▼
 ~/.local/bin/nous              ← binary added to your PATH
 ~/.nous/config/                ← agent configs (injected only for detected agents)
 
@@ -25,70 +59,6 @@ cd ~/my-project && nous sdd-init
 ```
 
 Your projects stay clean. NOUS never writes inside them unless you explicitly run `sdd-init`.
-
----
-
-## Quick Start
-
-### macOS / Linux
-
-**Homebrew (recommended — manages updates)**
-```bash
-brew tap Danelaton/tap
-brew install nous
-```
-
-**One-liner**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.sh | bash
-```
-
-### Windows
-
-**Scoop (recommended — manages updates)**
-```powershell
-scoop bucket add nous-cli https://github.com/Danelaton/scoop-bucket
-scoop install nous
-```
-
-**PowerShell one-liner**
-```powershell
-irm https://raw.githubusercontent.com/Danelaton/NOUS/main/installs/install.ps1 | iex
-```
-
-After either method, verify with:
-```bash
-nous status
-```
-
----
-
-## Install Methods Compared
-
-| Method | OS | Updates | Requires |
-|--------|----|---------|---------|
-| `brew install nous` | macOS / Linux | `brew upgrade nous` | Homebrew |
-| `scoop install nous` | Windows | `scoop update nous` | Scoop |
-| `curl \| bash` | macOS / Linux | Re-run the curl command | curl |
-| `irm \| iex` | Windows | Re-run the irm command | PowerShell 5+ |
-
----
-
-## What gets installed
-
-```
-~/.local/bin/nous       ← binary added to your PATH
-
-~/.nous/
-  config/               ← agent configs, injected only for detected agents
-    claude/config.json           ← if Claude Code is installed
-    cursor/settings.json         ← if Cursor is installed
-    opencode/settings.json       ← if OpenCode is installed
-    kiro/config.json            ← if Kiro is installed
-    roo/config.json             ← if Roo is installed
-```
-
-**Nothing is placed in your projects** until you explicitly run `sdd-init`.
 
 ---
 
@@ -138,6 +108,26 @@ Run `nous install` after installing a new agent to inject its config.
 
 ---
 
+## What gets installed
+
+```
+~/.local/bin/nous       ← binary added to your PATH (macOS/Linux)
+# or
+$env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
+
+~/.nous/
+  config/               ← agent configs, injected only for detected agents
+    claude/config.json           ← if Claude Code is installed
+    cursor/settings.json         ← if Cursor is installed
+    opencode/settings.json       ← if OpenCode is installed
+    kiro/config.json            ← if Kiro is installed
+    roo/config.json             ← if Roo is installed
+```
+
+**Nothing is placed in your projects** until you explicitly run `sdd-init`.
+
+---
+
 ## Features
 
 ### Spec-Driven Development (SDD)
@@ -172,9 +162,8 @@ NOUS CLI (Go 1.24)
 └── pkg/config/           # per-agent adapters
 
 Distribution
-├── Homebrew tap           # Danelaton/homebrew-tap — Formula/nous.rb
-├── Scoop bucket           # Danelaton/scoop-bucket — nous.json
 └── GoReleaser            # cross-compile: linux/darwin/windows × amd64/arm64
+                           # publishes to GitHub Releases
 ```
 
 ---
@@ -190,14 +179,10 @@ go build -o nous ./cmd/nous    # or nous.exe on Windows
 ./nous install
 ```
 
-**Release flow** (maintainers only)
+**Release flow** (automatic on push to main)
 ```bash
-git tag v0.x.0
-git push origin v0.x.0
-# GoReleaser CI builds all targets and publishes:
-#   → GitHub Releases (binaries + checksums)
-#   → Danelaton/homebrew-tap (Formula auto-updated)
-#   → Danelaton/scoop-bucket (manifest auto-updated)
+git push origin main
+# auto-tag.yml generates a timestamped tag → release.yml runs GoReleaser → GitHub Release published
 ```
 
 ---
