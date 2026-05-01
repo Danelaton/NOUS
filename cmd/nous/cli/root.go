@@ -13,12 +13,10 @@ var rootCmd = &cobra.Command{
 	Use:   "nous",
 	Short: "NOUS — AI Agent Ecosystem Configurator",
 	Long: `NOUS configures and enhances AI coding agents with:
-  - Spec-Driven Development workflow (OpenSpec)
   - Project structure and skills (dev/, AGENTS.md)
   - Automatic agent configuration injection
 
-Runtime installs globally to ~/.nous/ — never inside your projects.
-Run 'nous sdd-init' inside any project to activate the SDD workflow there.`,
+Runtime installs globally to ~/.nous/ — never inside your projects.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
@@ -64,32 +62,6 @@ var statusCmd = &cobra.Command{
 	},
 }
 
-var sddInitCmd = &cobra.Command{
-	Use:   "sdd-init",
-	Short: "Initialize SDD workflow in the current project (creates openspec/)",
-	Long: `Creates openspec/specs/ and openspec/changes/ in the target directory.
-
-By default uses the current working directory.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		projectDir, _ := cmd.Flags().GetString("dir")
-		if projectDir == "" {
-			cwd, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("failed to get current directory: %w", err)
-			}
-			projectDir = cwd
-		}
-		gen := install.NewOpenSpecGenerator(projectDir)
-		if err := gen.GenerateStructure(); err != nil {
-			return err
-		}
-		fmt.Printf("[NOUS] SDD context initialized at %s\n", projectDir)
-		fmt.Printf("[NOUS]   openspec/specs/   — write your spec here before coding\n")
-		fmt.Printf("[NOUS]   openspec/changes/ — propose changes here\n")
-		return nil
-	},
-}
-
 var syncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync skills and setup project structure",
@@ -112,47 +84,11 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 			projectDir = cwd
 		}
 
-		// Check if this is first-time setup (no .agent/ yet)
-		agentDir := filepath.Join(projectDir, ".agent")
-		isFirstTime := true
-		if _, err := os.Stat(agentDir); err == nil {
-			isFirstTime = false
-		}
-
-		opts := install.SyncOptions{}
-
-		// Flags override interactive prompt
-		engramFlag, _ := cmd.Flags().GetBool("engram")
-		aaakFlag, _ := cmd.Flags().GetBool("aaak")
-
-		if engramFlag {
-			opts.MemorySystem = "engram"
-		} else if aaakFlag {
-			opts.MemorySystem = "aaak"
-		} else if isFirstTime {
-			// Interactive prompt for first-time setup
-			fmt.Println("[NOUS] Select memory system:")
-			fmt.Println("  [1] AAAK — native memory system with AAAK dialect (default)")
-			fmt.Println("  [2] Engram — Engram-based persistent memory via MCP")
-			fmt.Print("[NOUS] Enter choice (1/2) [1]: ")
-
-			var choice string
-			fmt.Scanln(&choice)
-			if choice == "2" {
-				opts.MemorySystem = "engram"
-			} else {
-				opts.MemorySystem = "aaak"
-			}
-		} else {
-			// Subsequent syncs — default to AAAK
-			opts.MemorySystem = "aaak"
-		}
-
 		orch, err := install.NewOrchestrator()
 		if err != nil {
 			return err
 		}
-		if err := orch.SetupProject(projectDir, opts); err != nil {
+		if err := orch.SetupProject(projectDir); err != nil {
 			return err
 		}
 		if err := orch.SyncAgents(); err != nil {
@@ -164,11 +100,8 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 }
 
 func init() {
-	rootCmd.AddCommand(installCmd, statusCmd, sddInitCmd, syncCmd)
-	sddInitCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
+	rootCmd.AddCommand(installCmd, statusCmd, syncCmd)
 	syncCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
-	syncCmd.Flags().Bool("engram", false, "Use Engram memory system instead of AAAK")
-	syncCmd.Flags().Bool("aaak", false, "Use AAAK memory system (default)")
 }
 
 func Execute() {
