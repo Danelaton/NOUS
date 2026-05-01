@@ -50,15 +50,11 @@ NOUS installs **once on your machine** and enhances every project you work on:
 ```
 ~/.local/bin/nous              ← binary added to your PATH
 ~/.nous/config/                ← agent configs (injected only for detected agents)
-
-        │  (opt-in, per project)
-        ▼
-cd ~/my-project && nous sdd-init
-  openspec/specs/SPEC.md            ← write your spec before coding
-  openspec/changes/CHG_001.md     ← propose changes here
+~/.nous/skills/               ← installed skills
+~/.agent/skills/              ← skills available to this project
 ```
 
-Your projects stay clean. NOUS never writes inside them unless you explicitly run `sdd-init`.
+NOUS never writes inside your projects unless you explicitly run `nous sync`.
 
 ---
 
@@ -68,14 +64,12 @@ Run **once per project** inside your project directory:
 
 ```bash
 cd ~/my-project
-nous sdd-init    # → creates openspec/specs/ + openspec/changes/
-nous sync        # → creates dev/ + .agent/ + copies AGENTS.md
+nous sync        # → creates dev/ + .agent/ + AGENTS.md + skills
 ```
 
 | Command | What it creates | When to re-run |
 |---------|----------------|----------------|
-| `nous sdd-init` | `openspec/specs/SPEC.md` + `openspec/changes/` | First time in a new project |
-| `nous sync` | `dev/` (6 subdirs) + `.agent/` (memory system) + `AGENTS.md` | First time in a new project |
+| `nous sync` | `dev/` (6 subdirs) + `.agent/` (memory system) + `AGENTS.md` + skills | First time in a new project |
 
 > Add `dev/` and `.agent/` to your `.gitignore` — they are local working state, not tracked.
 
@@ -88,7 +82,6 @@ nous sync        # → creates dev/ + .agent/ + copies AGENTS.md
 | `nous install` | Global | Detect agents and inject NOUS configuration |
 | `nous status` | Global | Show system and detected agents |
 | `nous sync` | Global | Sync project structure + re-inject agent configs |
-| `nous sdd-init` | Project | Create `openspec/` in the current directory |
 
 ---
 
@@ -124,21 +117,12 @@ $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
     roo/config.json             ← if Roo is installed
 ```
 
-**Nothing is placed in your projects** until you explicitly run `sdd-init`.
-
 ---
 
 ## Features
 
-### Spec-Driven Development (SDD)
-- Enforces spec-first discipline: no code without a spec
-- `openspec/specs/` — project specifications
-- `openspec/changes/` — change proposals (`CHG_XXX_proposal.md`)
-- Agents reference the spec before every implementation step
-
 ### Agent Config Injection
 - NOUS writes a `config.json` / `settings.json` for each detected agent
-- Configures the agent to recognize and use the `openspec/` structure
 - Works with whatever model the agent already has configured
 
 ### Persistent Memory System
@@ -157,8 +141,8 @@ $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
 
 ```
 NOUS CLI (Go 1.24)
-├── cmd/nous/cli/          # commands: install, status, sync, sdd-init
-├── cmd/nous/install/      # orchestrator, detector, openspec generator
+├── cmd/nous/cli/          # commands: install, status, sync
+├── cmd/nous/install/      # orchestrator, detector, skills manager
 └── pkg/config/           # per-agent adapters
 
 Distribution

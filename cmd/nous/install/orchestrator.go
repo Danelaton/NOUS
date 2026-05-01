@@ -199,6 +199,30 @@ CODE — Full name, role, project association
 	}
 	fmt.Printf("[NOUS] AGENTS.md installed in project\n")
 
+	// ── 8. Copy skill folders to .agent/skills/ ──────────────────────────────
+	skillsSrcDir := filepath.Join(o.nousDir, "skills")
+	skillsDstDir := filepath.Join(projectDir, ".agent", "skills")
+	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .agent/skills/: %w", err)
+	}
+	entries, err := os.ReadDir(skillsSrcDir)
+	if err == nil {
+		for _, entry := range entries {
+			if !entry.IsDir() || entry.Name() == "config" {
+				continue // skip files and config dir
+			}
+			srcPath := filepath.Join(skillsSrcDir, entry.Name())
+			dstPath := filepath.Join(skillsDstDir, entry.Name())
+			// Remove existing if present
+			os.RemoveAll(dstPath)
+			if err := copyDir(srcPath, dstPath); err != nil {
+				fmt.Printf("[NOUS] Warning: failed to copy skill %s: %v\n", entry.Name(), err)
+			} else {
+				fmt.Printf("[NOUS] skill %s installed in project\n", entry.Name())
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -305,6 +329,24 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	return os.Chmod(dst, srcInfo.Mode())
+}
+
+// copyDir copies a directory recursively from src to dst.
+func copyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relPath)
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+		return copyFile(path, dstPath)
+	})
 }
 
 // addGitignoreEntry appends an entry to .gitignore if not already present.

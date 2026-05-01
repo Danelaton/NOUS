@@ -83,7 +83,25 @@
 
 #### PROHIBICIÓN: No crear ni utilizar .agent/dev/.
 
-## 4. CONVERSATIONAL PLANNING WORKFLOW
+## 4. SKILLS SYSTEM — .agent/skills/
+
+Skills are reusable modules stored in `.agent/skills/<skill-name>/`. Each skill contains a `SKILL.md` with instructions for specific tasks or workflows.
+
+### How skills work
+
+1. **Discovery** — When relevant to the current task, read the skill's `SKILL.md`
+2. **Activation** — Follow the instructions in the skill
+3. **Execution** — Apply the skill's guidance to your work
+
+### Available skills
+
+Check `.agent/skills/` for installed skills. Each folder is a self-contained skill with its own `SKILL.md`.
+
+### Creating new skills
+
+Use the `skill-creator` skill to create new skills following the Antigravity format.
+
+## 5. CONVERSATIONAL PLANNING WORKFLOW
 
 NOUS planifica antes de actuar, pero el plan vive en la conversación, no en archivos.
 

@@ -127,6 +127,30 @@ try {
     Write-Warn "Could not download AGENTS.md — skipping skills"
 }
 
+# Download skills folders from installs/skills/
+function Install-SkillsFolder($repoPath, $destDir) {
+    $apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$repoPath"
+    try {
+        $items = Invoke-RestMethod $apiUrl -UseBasicParsing
+        foreach ($item in $items) {
+            if ($item.type -eq "dir") {
+                $subDest = Join-Path $destDir $item.name
+                New-Item -ItemType Directory -Path $subDest -Force | Out-Null
+                Install-SkillsFolder $item.path $subDest
+            } elseif ($item.type -eq "file") {
+                $fileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/$($item.path)"
+                $destPath = Join-Path $destDir $item.name
+                try {
+                    Invoke-WebRequest -Uri $fileUrl -OutFile $destPath -UseBasicParsing
+                } catch { }
+            }
+        }
+    } catch { }
+}
+
+Install-SkillsFolder "installs/skills" $SKILLS_DIR
+Write-Ok "Skills folder installed"
+
 # ============================================================================
 # PHASE 3: Create ~/.nous/ structure
 # ============================================================================
@@ -140,6 +164,12 @@ if (-not (Test-Path $nousSkillsDir)) { New-Item -ItemType Directory -Path $nousS
 
 if (Test-Path (Join-Path $SKILLS_DIR "AGENTS.md")) {
     Copy-Item (Join-Path $SKILLS_DIR "AGENTS.md") $nousSkillsDir -Force
+}
+# Copy skill folders (e.g. skill-creator/) to ~/.nous/skills/
+Get-ChildItem $SKILLS_DIR -Directory | ForEach-Object {
+    $dest = Join-Path $nousSkillsDir $_.Name
+    if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+    Copy-Item $_.FullName $dest -Recurse -Force
 }
 Write-Ok "~/.nous/ ready"
 
@@ -174,8 +204,7 @@ Write-Host ""
 Write-Host "[NOUS]   Next steps:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project     # go to any project"
-Write-Host "[NOUS]   nous sdd-init        # create openspec/ (SDD workflow)"
-Write-Host "[NOUS]   nous sync            # setup dev/ + install AGENTS.md in project"
+Write-Host "[NOUS]   nous sync            # setup dev/ + skills + AGENTS.md in project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
 Write-Host ""

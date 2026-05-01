@@ -121,6 +121,31 @@ else
     warn "Could not download AGENTS.md — skipping skills"
 fi
 
+# Download skills folders from installs/skills/
+install_skills_folder() {
+    local repo_path="$1"
+    local dest_dir="$2"
+    local api_url="https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repo_path}"
+    local items
+    items=$(curl -fsSL "$api_url" 2>/dev/null) || return 0
+    echo "$items" | while IFS= read -r item; do
+        # Parse name and type from JSON — using grep/sed for portability
+        name=$(echo "$item" | grep '"name"' | sed 's/.*"name": *"\([^"]*\)".*/\1/' | head -1)
+        type=$(echo "$item" | grep '"type"' | sed 's/.*"type": *"\([^"]*\)".*/\1/' | head -1)
+        download_url=$(echo "$item" | grep '"download_url"' | sed 's/.*"download_url": *"\([^"]*\)".*/\1/' | head -1)
+        if [ -z "$name" ] || [ -z "$type" ]; then continue; fi
+        if [ "$type" = "dir" ]; then
+            mkdir -p "${dest_dir}/${name}"
+            install_skills_folder "${repo_path}/${name}" "${dest_dir}/${name}"
+        elif [ "$type" = "file" ] && [ -n "$download_url" ]; then
+            curl -fsSL "$download_url" -o "${dest_dir}/${name}" 2>/dev/null
+        fi
+    done
+}
+
+install_skills_folder "installs/skills" "$SKILLS_DIR"
+success "Skills folder installed"
+
 # ============================================================================
 # PHASE 3: Create ~/.nous/ structure
 # ============================================================================
@@ -133,6 +158,16 @@ mkdir -p "$NOUS_DIR/skills"
 if [ -f "$SKILLS_DIR/AGENTS.md" ]; then
     cp "$SKILLS_DIR/AGENTS.md" "$NOUS_DIR/skills/AGENTS.md"
 fi
+
+# Copy skill folders (e.g. skill-creator/) to ~/.nous/skills/
+for dir in "$SKILLS_DIR"/*/; do
+    if [ -d "$dir" ]; then
+        skill_name=$(basename "$dir")
+        dest="$NOUS_DIR/skills/$skill_name"
+        rm -rf "$dest"
+        cp -r "$dir" "$dest"
+    fi
+done
 
 success "~/.nous/ ready"
 
@@ -163,8 +198,7 @@ printf "\n"
 printf "${C}  Next steps:${N}\n"
 printf "\n"
 printf "  %-25s %s\n" "cd ~/my-project" "go to any project"
-printf "  %-25s %s\n" "nous sdd-init" "create openspec/ (SDD workflow)"
-printf "  %-25s %s\n" "nous sync" "setup dev/ + install AGENTS.md in project"
+printf "  %-25s %s\n" "nous sync" "setup dev/ + skills + AGENTS.md in project"
 printf "\n"
 
 # ── PATH hint: detect shell and show correct rc file ──────────────────────
