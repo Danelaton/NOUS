@@ -122,25 +122,50 @@ else
 fi
 
 # Download skills folders from installs/skills/
+# Uses jq if available, falls back to python3, then python — all handle multi-line JSON
+parse_github_contents() {
+    local json="$1"
+    if command -v jq &>/dev/null; then
+        echo "$json" | jq -r '.[] | "\(.type)\t\(.name)\t\(.download_url // "")"'
+    elif command -v python3 &>/dev/null; then
+        echo "$json" | python3 -c "
+import sys, json
+items = json.load(sys.stdin)
+for i in items:
+    print(i['type'] + '\t' + i['name'] + '\t' + (i.get('download_url') or ''))
+"
+    elif command -v python &>/dev/null; then
+        echo "$json" | python -c "
+import sys, json
+items = json.load(sys.stdin)
+for i in items:
+    print(i['type'] + '\t' + i['name'] + '\t' + (i.get('download_url') or ''))
+"
+    else
+        warn "jq and python not found — skills folder download skipped"
+        return 1
+    fi
+}
+
 install_skills_folder() {
     local repo_path="$1"
     local dest_dir="$2"
     local api_url="https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repo_path}"
     local items
     items=$(curl -fsSL "$api_url" 2>/dev/null) || return 0
-    echo "$items" | while IFS= read -r item; do
-        # Parse name and type from JSON — using grep/sed for portability
-        name=$(echo "$item" | grep '"name"' | sed 's/.*"name": *"\([^"]*\)".*/\1/' | head -1)
-        type=$(echo "$item" | grep '"type"' | sed 's/.*"type": *"\([^"]*\)".*/\1/' | head -1)
-        download_url=$(echo "$item" | grep '"download_url"' | sed 's/.*"download_url": *"\([^"]*\)".*/\1/' | head -1)
-        if [ -z "$name" ] || [ -z "$type" ]; then continue; fi
+    local parsed
+    parsed=$(parse_github_contents "$items") || return 0
+    while IFS=$'\t' read -r type name download_url; do
+        [ -z "$name" ] && continue
         if [ "$type" = "dir" ]; then
             mkdir -p "${dest_dir}/${name}"
             install_skills_folder "${repo_path}/${name}" "${dest_dir}/${name}"
         elif [ "$type" = "file" ] && [ -n "$download_url" ]; then
             curl -fsSL "$download_url" -o "${dest_dir}/${name}" 2>/dev/null
         fi
-    done
+    done <<EOF
+$parsed
+EOF
 }
 
 install_skills_folder "installs/skills" "$SKILLS_DIR"
@@ -154,20 +179,6 @@ info "Phase 3/5: Creating ~/.nous/ structure..."
 
 mkdir -p "$NOUS_DIR/config"
 mkdir -p "$NOUS_DIR/skills"
-
-if [ -f "$SKILLS_DIR/AGENTS.md" ]; then
-    cp "$SKILLS_DIR/AGENTS.md" "$NOUS_DIR/skills/AGENTS.md"
-fi
-
-# Copy skill folders (e.g. skill-creator/) to ~/.nous/skills/
-for dir in "$SKILLS_DIR"/*/; do
-    if [ -d "$dir" ]; then
-        skill_name=$(basename "$dir")
-        dest="$NOUS_DIR/skills/$skill_name"
-        rm -rf "$dest"
-        cp -r "$dir" "$dest"
-    fi
-done
 
 success "~/.nous/ ready"
 
