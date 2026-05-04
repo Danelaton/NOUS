@@ -28,6 +28,44 @@ Clone the Google repo, configure `.env`, run `python agent.py`. The agent serves
 
 ---
 
+## What this installs in your project
+
+The memory agent runs as a **sidecar service** alongside your existing project. It adds:
+
+```
+your-project/
+└── memory-agent/          ← new subfolder (isolated, does not touch existing files)
+    ├── agent.py
+    ├── requirements.txt
+    ├── .env                ← NEW (add to .gitignore)
+    ├── memory.db           ← NEW (add to .gitignore)
+    └── inbox/              ← NEW (add to .gitignore)
+```
+
+**Nothing in your existing project is modified.** No existing `requirements.txt`, `.env`, `package.json`, or `.gitignore` is touched. The agent installs into its own subfolder and communicates with the rest of the project via HTTP API.
+
+---
+
+## Rollback / Uninstall
+
+To remove completely:
+
+```bash
+# Stop the agent if running
+kill $(cat memory-agent/memory-agent.pid 2>/dev/null) 2>/dev/null || true
+
+# Remove the subfolder and all its data
+rm -rf memory-agent/
+
+# If you registered a system service:
+# macOS: launchctl unload ~/Library/LaunchAgents/com.memory-agent.plist && rm ~/Library/LaunchAgents/com.memory-agent.plist
+# Linux: sudo systemctl stop memory-agent && sudo systemctl disable memory-agent && sudo rm /etc/systemd/system/memory-agent.service
+```
+
+No rollback needed for your existing project files — nothing was changed there.
+
+---
+
 ## Steps
 
 ### Step 1 — Prerequisites
@@ -43,31 +81,32 @@ Get a Gemini API key at: https://aistudio.google.com/app/apikey
 
 ---
 
-### Step 2 — Clone the repo
+### Step 2 — Clone the repo into a subfolder
 
-Clone only the subdirectory you need (sparse checkout avoids downloading the full 40GB repo):
+The agent lives in its own `memory-agent/` subfolder — completely separate from your existing code.
 
 ```bash
-# Option A — sparse checkout (recommended, fast)
-git clone --no-checkout --depth=1 https://github.com/GoogleCloudPlatform/generative-ai.git tmp-google-ai
-cd tmp-google-ai
+# From the root of your project:
+
+# Option A — sparse checkout (recommended, fast — avoids downloading the full 40GB repo)
+git clone --no-checkout --depth=1 https://github.com/GoogleCloudPlatform/generative-ai.git _tmp_google_ai
+cd _tmp_google_ai
 git sparse-checkout init --cone
 git sparse-checkout set gemini/agents/always-on-memory-agent
 git checkout main
-cp -r gemini/agents/always-on-memory-agent ../memory-agent
 cd ..
-rm -rf tmp-google-ai
-cd memory-agent
+cp -r _tmp_google_ai/gemini/agents/always-on-memory-agent memory-agent
+rm -rf _tmp_google_ai
 
 # Option B — direct download (if git sparse checkout unavailable)
 curl -L "https://github.com/GoogleCloudPlatform/generative-ai/archive/refs/heads/main.tar.gz" | \
-  tar -xz --strip-components=3 "generative-ai-main/gemini/agents/always-on-memory-agent"
+  tar -xz --strip-components=3 -C memory-agent "generative-ai-main/gemini/agents/always-on-memory-agent"
 ```
 
-Verify the contents:
+Verify — you should now have a `memory-agent/` subfolder in your project root:
 
 ```bash
-ls -la
+ls memory-agent/
 # Should see: agent.py  requirements.txt  README.md
 ```
 
@@ -75,20 +114,32 @@ ls -la
 
 ### Step 3 — Install dependencies
 
+The agent has its own `requirements.txt` inside `memory-agent/`. Install into a virtual environment to avoid conflicts with your project's existing packages:
+
 ```bash
+cd memory-agent/
+
+# Create a dedicated virtualenv (recommended — does not affect your project's deps)
+python -m venv .venv
+source .venv/bin/activate       # macOS/Linux
+# .venv\Scripts\activate        # Windows
+
 pip install -r requirements.txt
 ```
 
 Core packages installed: `google-adk`, `google-genai`, `aiohttp`, `watchdog`, `streamlit`, `python-dotenv`.
 
+**Do NOT merge these dependencies into your project's existing `requirements.txt`** — the agent runs as a separate process and doesn't need to share the same Python environment.
+
 ---
 
 ### Step 4 — Configure environment
 
-Create `.env` in the `memory-agent/` directory:
+The agent needs its own `.env` inside `memory-agent/`. **Do not modify your project's existing `.env`** — this is a separate file scoped to the agent subfolder.
 
 ```bash
-cat > .env << 'EOF'
+# Inside memory-agent/ — create a NEW .env file for the agent only
+cat > memory-agent/.env << 'EOF'
 GOOGLE_API_KEY=your-gemini-api-key-here
 CONSOLIDATION_INTERVAL_MINUTES=30
 API_PORT=8888
@@ -97,26 +148,38 @@ DB_PATH=./memory.db
 EOF
 ```
 
-Then set it in your shell session as well:
+**If your project already has a root-level `.env`**, add the key there as an alternative — the agent reads from its own directory first:
 
 ```bash
-export GOOGLE_API_KEY="your-gemini-api-key-here"
+# Option: append to existing project .env instead
+echo "" >> .env
+echo "# ADK Memory Agent" >> .env
+echo "GOOGLE_API_KEY=your-gemini-api-key-here" >> .env
 ```
 
-**Note:** Never commit `.env` to git. Add it to `.gitignore`:
+**Update `.gitignore`** — append these lines without overwriting the file:
 
 ```bash
-echo ".env" >> .gitignore
-echo "memory.db" >> .gitignore
-echo "inbox/" >> .gitignore
+# Check what's already ignored first
+cat .gitignore | grep -E "\.env|memory\.db|inbox"
+
+# Append only what's missing (safe — >> never truncates)
+echo "" >> .gitignore
+echo "# ADK Memory Agent" >> .gitignore
+grep -qxF "memory-agent/.env" .gitignore     || echo "memory-agent/.env" >> .gitignore
+grep -qxF "memory-agent/memory.db" .gitignore || echo "memory-agent/memory.db" >> .gitignore
+grep -qxF "memory-agent/inbox/" .gitignore   || echo "memory-agent/inbox/" >> .gitignore
+grep -qxF "memory-agent/.venv/" .gitignore   || echo "memory-agent/.venv/" >> .gitignore
 ```
+
+The `grep -qxF ... ||` pattern only adds a line if it doesn't already exist — safe to run multiple times.
 
 ---
 
 ### Step 5 — Create inbox folder
 
 ```bash
-mkdir -p inbox
+mkdir -p memory-agent/inbox
 ```
 
 Files dropped here are automatically picked up by the file watcher and ingested into memory.
@@ -126,6 +189,8 @@ Files dropped here are automatically picked up by the file watcher and ingested 
 ### Step 6 — Run the agent
 
 ```bash
+cd memory-agent/
+source .venv/bin/activate   # activate the virtualenv created in Step 3
 python agent.py
 ```
 

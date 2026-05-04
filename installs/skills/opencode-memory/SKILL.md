@@ -32,14 +32,76 @@ Add `opencode-mem` to your OpenCode plugin list, configure `~/.config/opencode/o
 
 ---
 
+## What this installs in your project
+
+This plugin installs **globally** (not per-project). It touches only OpenCode config files under `~/.config/opencode/`:
+
+```
+~/.config/opencode/
+├── opencode.json          ← MODIFIED: "opencode-mem" added to plugin array
+└── opencode-mem.jsonc     ← NEW: plugin config (created by you in Step 2)
+
+~/.opencode-mem/           ← NEW: all memory storage (created automatically)
+└── data/
+    ├── registry.db        ← shard index
+    ├── *.db               ← per-project memory shards
+    └── .cache/            ← HuggingFace model cache (~50MB)
+```
+
+**Nothing in your project directory is modified.** No `package.json`, `requirements.txt`, `.env`, or source files are touched.
+
+---
+
+## Rollback / Uninstall
+
+```bash
+# 1. Remove plugin from OpenCode config
+#    Edit ~/.config/opencode/opencode.json and delete "opencode-mem" from the plugin array
+
+# 2. Remove plugin config
+rm ~/.config/opencode/opencode-mem.jsonc
+
+# 3. Remove all memory data (WARNING: this deletes all stored memories)
+rm -rf ~/.opencode-mem/
+
+# 4. Restart OpenCode — plugin is gone
+```
+
+To only disable temporarily (keep memories): remove `opencode-mem` from the `plugin` array in `opencode.json` and restart. Re-add it later to restore.
+
+---
+
 ## Steps
 
 ### Step 1 — Add plugin to OpenCode
 
-Edit `~/.config/opencode/opencode.json` and add `opencode-mem` to the plugin array:
+Edit `~/.config/opencode/opencode.json`. **Add `"opencode-mem"` to the existing plugin array** — do not replace the whole file.
+
+**If `opencode.json` already exists with a `plugin` array**, add the entry:
 
 ```jsonc
 {
+  // ... your existing config ...
+  "plugin": [
+    "some-existing-plugin",  // keep whatever is already here
+    "opencode-mem"            // add this line
+  ]
+}
+```
+
+**If `opencode.json` does not exist yet**, create it:
+
+```jsonc
+{
+  "plugin": ["opencode-mem"]
+}
+```
+
+**If `opencode.json` exists but has no `plugin` key**, add it:
+
+```jsonc
+{
+  // ... your existing keys ...
   "plugin": ["opencode-mem"]
 }
 ```
@@ -58,7 +120,14 @@ OpenCode downloads the plugin automatically on next startup. No `npm install` ne
 
 ### Step 2 — Configure the plugin
 
-Create (or edit) `~/.config/opencode/opencode-mem.jsonc`:
+Create `~/.config/opencode/opencode-mem.jsonc` **if it doesn't exist yet**:
+
+```bash
+# Check if config already exists
+ls ~/.config/opencode/opencode-mem.jsonc 2>/dev/null && echo "EXISTS — edit it instead of replacing" || echo "Not found — safe to create"
+```
+
+**If creating fresh**, use this template:
 
 ```jsonc
 {
@@ -101,6 +170,16 @@ Create (or edit) `~/.config/opencode/opencode-mem.jsonc`:
   // --- Toasts ---
   "showAutoCaptureToasts": true,
   "showUserProfileToasts": true
+}
+```
+
+**If the file already exists**, only add the keys you need — JSONC merges at the key level. Never replace the whole file:
+
+```jsonc
+{
+  // Keep all your existing config — just add these:
+  "opencodeProvider": "anthropic",
+  "opencodeModel": "claude-haiku-4-5"
 }
 ```
 
