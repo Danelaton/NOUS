@@ -66,8 +66,19 @@ Flag modules with fan-out > 8 or fan-in > 15 as candidates.
 #### 2c. Circular dependencies
 
 ```bash
-# Go: use go list
-go list -f '{{.ImportPath}}: {{.Imports}}' ./... 2>/dev/null | grep circular || true
+# Go: build detects real import cycles (go list does not print "circular")
+go build ./... 2>&1 | grep "import cycle" || echo "No import cycles detected"
+
+# If go is not available — manual analysis: look for mutual imports between packages
+# Find all internal import statements and check for A→B and B→A pairs:
+MODULE=$(head -1 go.mod 2>/dev/null | awk '{print $2}')
+if [ -n "$MODULE" ]; then
+  grep -r "\"$MODULE/" --include="*.go" -h 2>/dev/null | \
+    sed 's/.*"\(.*\)".*/\1/' | sort | uniq > /tmp/_imports_all.txt
+  # For each package, check if it is also imported by something it imports
+  echo "Internal packages imported (check pairs manually for cycles):"
+  cat /tmp/_imports_all.txt
+fi
 
 # JS/TS: look for obvious cycles via grep
 # (full cycle detection requires madge or similar — note if unavailable)

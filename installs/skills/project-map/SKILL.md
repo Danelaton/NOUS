@@ -93,9 +93,12 @@ grep -r "router\.\|app\.get\|app\.post\|@app\.route\|http\.HandleFunc\|\.Handle(
 
 ```bash
 # Find internal imports/requires to map module relationships
-# Go
-grep -r '"github.com/' --include="*.go" -h 2>/dev/null | \
-  sed 's/.*"\(.*\)".*/\1/' | sort | uniq -c | sort -rn | head -20
+# Go — read module path from go.mod first (works with github, gitlab, bitbucket, or any host)
+MODULE=$(head -1 go.mod 2>/dev/null | awk '{print $2}')
+if [ -n "$MODULE" ]; then
+  grep -r "\"$MODULE/" --include="*.go" -h 2>/dev/null | \
+    sed 's/.*"\(.*\)".*/\1/' | sort | uniq -c | sort -rn | head -20
+fi
 
 # JS/TS — internal imports
 grep -r "from '\.\." --include="*.ts" --include="*.js" -h 2>/dev/null | \
