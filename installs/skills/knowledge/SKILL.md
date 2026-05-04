@@ -134,6 +134,8 @@ Using LLM reasoning, identify:
 - Implicit dependencies (A depends on B, discovered separately)
 - Temporal patterns (things that changed over time)
 
+If `PROJECT_MAP.md` was loaded in Step 1, use it as architectural context: check whether entries touch modules that are related or disconnected according to the map. For example, if two entries both mention a module that PROJECT_MAP.md identifies as a high-coupling area, flag that connection explicitly in the consolidation.
+
 ### Step 3 — Save consolidation
 
 Write to `.agent/knowledge/consolidations/YYYY-MM-DD.md`:
@@ -234,3 +236,4 @@ Before saving any entry or consolidation:
 - Entries are append-only — never edit or delete past entries, only add new ones or mark consolidated
 - `index.md` is the fast lookup layer; always read it before scanning individual entries
 - Knowledge persists across sessions because it lives in `.agent/knowledge/` (not tracked by git by default)
+- If entries contain sensitive information (private specs, internal meeting notes, unreleased decisions), add `.agent/knowledge/` to `.gitignore`. If the project already has a `.gitignore`, suggest appending it automatically: `echo '.agent/knowledge/' >> .gitignore`

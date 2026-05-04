@@ -192,3 +192,4 @@ Before saving PROJECT_MAP.md:
 - PROJECT_MAP.md is input for the `architecture-review` skill — keep it factual, not analytical
 - Re-run this skill when major structural changes happen (new modules, refactors)
 - If the project has an existing `README.md`, read it first as a starting point
+- After generating PROJECT_MAP.md, if `.agent/knowledge/` exists, consider ingesting it as a high-importance knowledge entry (importance: 0.9) so future queries can reference the project structure

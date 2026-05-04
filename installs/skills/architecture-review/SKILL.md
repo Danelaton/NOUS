@@ -34,8 +34,11 @@ Also load:
 ```bash
 cat AGENTS.md 2>/dev/null         # project conventions
 cat .agent/MEMORY.md 2>/dev/null  # past decisions
+cat .agent/knowledge/index.md 2>/dev/null  # accumulated project knowledge
 ls docs/ADR_*.md 2>/dev/null      # architectural decisions on record
 ```
+
+If `.agent/knowledge/index.md` exists and has entries with topics related to architecture, dependencies, or performance, read those entries as additional context before starting the analysis.
 
 ### Step 2 — Analyze for common issues
 
@@ -54,11 +57,24 @@ Modules that depend on too many others become fragile — one change ripples eve
 
 ```bash
 # Measure fan-in / fan-out via import counts
-# For Go:
-grep -r '"<module-path>' --include="*.go" -l 2>/dev/null | wc -l
+# For Go — read module path from go.mod (works with any host: github, gitlab, bitbucket, etc.)
+MODULE=$(head -1 go.mod 2>/dev/null | awk '{print $2}')
+if [ -n "$MODULE" ]; then
+  echo "=== Fan-out per package (how many internal packages each file imports) ==="
+  grep -r "\"$MODULE/" --include="*.go" -l 2>/dev/null | while read f; do
+    count=$(grep -c "\"$MODULE/" "$f" 2>/dev/null || echo 0)
+    echo "$count $f"
+  done | sort -rn | head -20
+fi
 
-# For TS/JS:
-grep -r "from '.*<module>" --include="*.ts" --include="*.js" -l 2>/dev/null | wc -l
+# For TS/JS — use package name from package.json as module prefix
+PKG=$(node -e "try{process.stdout.write(require('./package.json').name||'')}catch(e){}" 2>/dev/null)
+if [ -n "$PKG" ]; then
+  grep -r "from '.*$PKG" --include="*.ts" --include="*.js" -l 2>/dev/null | wc -l
+else
+  # Fallback: count relative imports as proxy for coupling
+  grep -r "from '\.\." --include="*.ts" --include="*.js" -l 2>/dev/null | wc -l
+fi
 ```
 
 Flag modules with fan-out > 8 or fan-in > 15 as candidates.
@@ -206,3 +222,4 @@ Before saving ARCHITECTURE_REVIEW.md:
 - If a circular dependency is detected, note it but do not assume it's always a problem (sometimes intentional)
 - Revisit ARCHITECTURE_REVIEW.md after major refactors — it goes stale quickly
 - Keep recommendations specific to this project's stack and conventions (read from PROJECT_MAP.md)
+- After generating ARCHITECTURE_REVIEW.md, if `.agent/knowledge/` exists, consider ingesting it as a high-importance knowledge entry (importance: 0.9) so architectural findings are queryable in future sessions

@@ -44,6 +44,8 @@ Place it inside `.agent/skills/` in your project:
 
 For global skills (shared across projects), place in `~/.nous/skills/<skill-name>/`.
 
+For skills distributed with `nous install` (default skills shipped with NOUS itself), place in `installs/skills/<skill-name>/` in the NOUS repository. These are downloaded to `~/.nous/skills/` on install and synced to `.agent/skills/` on every project.
+
 ### Step 3: Write SKILL.md
 
 SKILL.md has two parts:

@@ -196,6 +196,39 @@ For project-specific skills not meant for distribution, place them directly in `
 
 ---
 
+## Output conventions
+
+Skills generate output files in two different locations. This is intentional:
+
+| Output | Location | Why |
+|--------|----------|-----|
+| `PROJECT_MAP.md` | Project root | Public project document — commitable, readable by all contributors |
+| `ARCHITECTURE_REVIEW.md` | Project root | Public project document — commitable, shareable with team |
+| `.agent/knowledge/` | `.agent/` subdirectory | Private accumulated memory — optionally excluded from git via `.gitignore` |
+| `.agent/skills/` | `.agent/` subdirectory | Skills copied by `nous sync` — do not edit manually, re-sync to update |
+
+Root-level outputs (`PROJECT_MAP.md`, `ARCHITECTURE_REVIEW.md`) are meant to be committed and shared. `.agent/` outputs are local working state — they persist across sessions but are not necessarily tracked.
+
+---
+
+## Recommended execution order for new projects
+
+When starting on a new or unfamiliar project, run the skills in this order:
+
+1. **`project-map`** — Scan the codebase and generate `PROJECT_MAP.md`. Establishes the factual baseline: stack, structure, entry points, relationships.
+
+2. **`architecture-review`** — Analyze `PROJECT_MAP.md` and generate `ARCHITECTURE_REVIEW.md`. Identifies structural risks, coupling issues, and priority actions.
+
+3. **`knowledge` (ingest)** — Feed existing docs, specs, ADRs, and the generated files into `.agent/knowledge/`. Builds the queryable memory base.
+
+4. **`knowledge` (consolidate)** — Connect patterns across ingested entries. Surfaces implicit dependencies and contradictions discovered during onboarding.
+
+5. **`skill-creator`** — Once you understand the project, create custom skills for recurring workflows specific to this codebase.
+
+Skills 1–2 are stateless (generate files, no persistent state). Skills 3–4 are stateful (accumulate in `.agent/knowledge/`). Skill 5 extends the system itself.
+
+---
+
 ## Known issues (to be fixed)
 
 | # | File | Line | Issue |
