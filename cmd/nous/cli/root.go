@@ -11,12 +11,14 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "nous",
-	Short: "NOUS — AI Agent Ecosystem Configurator",
-	Long: `NOUS configures and enhances AI coding agents with:
-  - Project structure and skills (dev/, AGENTS.md)
-  - Automatic agent configuration injection
+	Short: "NOUS — AI Skills Installer for coding agents",
+	Long: `NOUS installs AI agent skills into your projects.
 
-Runtime installs globally to ~/.nous/ — never inside your projects.`,
+  nous sync     # setup project: dev/ + .agent/ + AGENTS.md + skills
+  nous skills   # install/update skills from ~/.nous/skills/
+  nous status   # show installed skills and runtime info
+
+Skills install globally to ~/.nous/skills/ — never locked to a single project.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
@@ -36,7 +38,7 @@ var installCmd = &cobra.Command{
 
 var statusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "Show NOUS status and detected agents",
+	Short: "Show NOUS status and installed skills",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		sys, err := install.Detect()
 		if err != nil {
@@ -66,12 +68,13 @@ var syncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync skills and setup project structure",
 	Long: `Creates dev/ directory structure, copies AGENTS.md into the project,
-and re-injects agent configurations.
+and syncs skills from ~/.nous/skills/ into .agent/skills/.
 
 Creates:
   dev/sandbox/  dev/tmp-repos/  dev/docs/
   dev/scripts/   dev/tests/      dev/backups/
-  .gitignore (adds dev/ if missing)
+  .agent/MEMORY.md  .agent/docs_index.md  .agent/skills/
+  .gitignore (adds dev/ and .agent/ if missing)
 
 Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,9 +93,6 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 		}
 		if err := orch.SetupProject(projectDir); err != nil {
 			return err
-		}
-		if err := orch.SyncAgents(); err != nil {
-			fmt.Printf("[NOUS] Warning: agent sync: %v\n", err)
 		}
 		fmt.Printf("[NOUS] Project ready: %s\n", projectDir)
 		return nil

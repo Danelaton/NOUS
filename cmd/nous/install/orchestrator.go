@@ -1,7 +1,6 @@
 package install
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -32,8 +31,7 @@ func NewOrchestrator() (*Orchestrator, error) {
 }
 
 func (o *Orchestrator) Run() error {
-	fmt.Printf("[NOUS] Starting installation...\n")
-	fmt.Printf("[NOUS] System: %s\n", o.system.String())
+	fmt.Printf("[NOUS] Setting up ~/.nous/ ...\n")
 
 	if !o.system.IsSupported() {
 		return fmt.Errorf("unsupported system — Go 1.21+ required")
@@ -45,7 +43,7 @@ func (o *Orchestrator) Run() error {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Phase 2: ensure ~/.nous/skills/ has AGENTS.md
+	// Phase 2: ensure ~/.nous/skills/ exists
 	skillsDstDir := filepath.Join(o.nousDir, "skills")
 	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
 		return fmt.Errorf("failed to create skills directory: %w", err)
@@ -66,13 +64,8 @@ func (o *Orchestrator) Run() error {
 		}
 	}
 
-	// Phase 3: detect agents and inject configs
-	if err := o.detectAndInjectConfigs(); err != nil {
-		fmt.Printf("[NOUS] Warning: config injection: %v\n", err)
-	}
-
-	fmt.Printf("[NOUS] Installation complete!\n")
-	fmt.Printf("[NOUS] Config installed at: %s\n", o.nousDir)
+	fmt.Printf("[NOUS] ~/.nous/ ready at: %s\n", o.nousDir)
+	fmt.Printf("[NOUS] Run 'nous sync' in any project to install skills and project structure.\n")
 	return nil
 }
 
@@ -225,85 +218,23 @@ CODE — Full name, role, project association
 	return nil
 }
 
-// detectAndInjectConfigs finds all installed agents and injects their configs.
-func (o *Orchestrator) detectAndInjectConfigs() error {
-	fmt.Printf("[NOUS] Detecting and configuring agents...\n")
-	agents := detectAgents()
-	if len(agents) == 0 {
-		fmt.Printf("[NOUS] No agents detected — skipping config injection\n")
-		return nil
-	}
-	for _, agent := range agents {
-		fmt.Printf("[NOUS] Configuring %s...\n", agent)
-		if err := injectConfig(agent, o.nousDir); err != nil {
-			fmt.Printf("[NOUS] Warning: failed to configure %s: %v\n", agent, err)
-		}
-	}
-	return nil
-}
-
-// SyncAgents re-injects configs for all detected agents.
-func (o *Orchestrator) SyncAgents() error {
-	fmt.Printf("[NOUS] Syncing agent configurations...\n")
-	return o.detectAndInjectConfigs()
-}
-
 // Status returns a human-readable summary of the current install state.
 func (o *Orchestrator) Status() string {
-	agents := detectAgents()
-	agentStr := "none detected"
-	if len(agents) > 0 {
-		agentStr = strings.Join(agents, ", ")
+	skillsDir := filepath.Join(o.nousDir, "skills")
+	skillsInfo := "not found"
+	if entries, err := os.ReadDir(skillsDir); err == nil {
+		count := 0
+		for _, e := range entries {
+			if e.IsDir() {
+				count++
+			}
+		}
+		skillsInfo = fmt.Sprintf("%s (%d skill folders)", skillsDir, count)
 	}
-	return fmt.Sprintf("  nousDir:  %s\n  agents:   %s\n", o.nousDir, agentStr)
+	return fmt.Sprintf("  nousDir:  %s\n  skills:   %s\n", o.nousDir, skillsInfo)
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-
-func detectAgents() []string {
-	var agents []string
-	home, _ := os.UserHomeDir()
-	paths := map[string]string{
-		"opencode": filepath.Join(home, ".opencode"),
-		"claude":   filepath.Join(home, ".claude"),
-		"cursor":   filepath.Join(home, ".cursor"),
-		"kiro":     filepath.Join(home, ".kiro"),
-		"roo":      filepath.Join(home, ".roo"),
-	}
-	for name, path := range paths {
-		if _, err := os.Stat(path); err == nil {
-			agents = append(agents, name)
-		}
-	}
-	return agents
-}
-
-func injectConfig(agent, nousDir string) error {
-	configDir := filepath.Join(nousDir, "config", agent)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return err
-	}
-
-	config := map[string]interface{}{
-		"openspec": map[string]interface{}{
-			"enabled": true,
-		},
-	}
-
-	filename := "config.json"
-	if agent == "opencode" || agent == "cursor" {
-		filename = "settings.json"
-	}
-
-	content := formatConfig(config)
-	return os.WriteFile(filepath.Join(configDir, filename), []byte(content), 0644)
-}
-
-func formatConfig(config map[string]interface{}) string {
-	wrapper := map[string]interface{}{"nous": config}
-	jsonBytes, _ := json.MarshalIndent(wrapper, "", "  ")
-	return string(jsonBytes) + "\n"
-}
 
 // copyFile copies a file from src to dst.
 func copyFile(src, dst string) error {

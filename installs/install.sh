@@ -7,12 +7,11 @@ set -e
 #
 # What this installs:
 #   ~/.local/bin/nous              — NOUS binary
-#   ~/.nous/skills/                — skills (AGENTS.md)
-#   ~/.nous/config/                — agent configs
+#   ~/.nous/skills/                — predefined skills
 #
-# To activate a project:
-#   cd ~/my-project && nous sdd-init
-#   cd ~/my-project && nous sync
+# To use:
+#   nous sync        # setup project (dev/ + .agent/ + AGENTS.md + skills)
+#   nous skills      # install skills into current project
 
 GITHUB_OWNER="Danelaton"
 GITHUB_REPO="NOUS"
@@ -39,15 +38,28 @@ dim()     { printf "${D}[NOUS]${N} %s\n" "$*"; }
 
 printf "\n"
 printf "${C}=================================================${N}\n"
-printf "${C}  NOUS — AI Ecosystem Configurator${N}\n"
+printf "${C}  NOUS — AI Skills Installer${N}\n"
 printf "${C}  Version: ${VERSION}${N}\n"
 printf "${C}=================================================${N}\n"
 printf "\n"
 
 # ============================================================================
-# PHASE 1: Install NOUS binary
+# PHASE 1: Remove previous installation (clean upgrade)
 # ============================================================================
-info "Phase 1/5: Installing NOUS binary..."
+info "Phase 1/4: Removing previous installation..."
+
+for prev_path in "/usr/local/bin/nous" "$HOME/.local/bin/nous"; do
+    if [ -f "$prev_path" ]; then
+        rm -f "$prev_path"
+        dim "Previous binary removed: $prev_path"
+    fi
+done
+
+# ============================================================================
+# PHASE 2: Install NOUS binary
+# ============================================================================
+printf "\n"
+info "Phase 2/4: Installing NOUS binary..."
 
 install_binary() {
     local os arch tmp
@@ -108,17 +120,19 @@ if [ "$NOUS_INSTALLED" = false ]; then
 fi
 
 # ============================================================================
-# PHASE 2: Install skills from GitHub
+# PHASE 3: Download skills to ~/.nous/skills/
 # ============================================================================
 printf "\n"
-info "Phase 2/5: Installing skills..."
+info "Phase 3/4: Downloading skills to ~/.nous/skills/..."
 
 mkdir -p "$SKILLS_DIR"
+
+# Download AGENTS.md
 AGENTS_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${VERSION}/installs/skeleton/AGENTS.md"
 if curl -fsSL "$AGENTS_URL" -o "$SKILLS_DIR/AGENTS.md" 2>/dev/null; then
-    success "AGENTS.md installed"
+    success "AGENTS.md downloaded"
 else
-    warn "Could not download AGENTS.md — skipping skills"
+    warn "Could not download AGENTS.md — skipping"
 fi
 
 # Download skills folders from installs/skills/
@@ -169,47 +183,24 @@ EOF
 }
 
 install_skills_folder "installs/skills" "$SKILLS_DIR"
-success "Skills folder installed"
+success "Skills downloaded to $SKILLS_DIR"
 
 # ============================================================================
-# PHASE 3: Create ~/.nous/ structure
-# ============================================================================
-printf "\n"
-info "Phase 3/5: Creating ~/.nous/ structure..."
-
-mkdir -p "$NOUS_DIR/config"
-# $SKILLS_DIR is already $HOME/.nous/skills/ — no copy needed
-
-success "~/.nous/ ready"
-
-# ============================================================================
-# PHASE 4: Run nous install (detect + inject agent configs)
-# ============================================================================
-printf "\n"
-info "Phase 4/5: Detecting agents and configuring..."
-
-if command -v nous &>/dev/null; then
-    nous install 2>/dev/null || warn "Agent configuration skipped — run 'nous sync' manually"
-else
-    warn "nous binary not in PATH — restart shell then run 'nous sync'"
-fi
-
-# ============================================================================
-# PHASE 5: Summary
+# PHASE 4: Summary
 # ============================================================================
 printf "\n"
 printf "${C}=================================================${N}\n"
-printf "${C}  NOUS Installation Complete${N}\n"
+printf "${C}  Installation Complete${N}\n"
 printf "${C}  Version: ${VERSION}${N}\n"
 printf "${C}=================================================${N}\n"
 printf "  ${G}%-20s${N} %s\n" "nous binary:" "$(command -v nous 2>/dev/null || echo 'restart shell to activate')"
 printf "  ${G}%-20s${N} %s\n" "skills:" "$SKILLS_DIR"
-printf "  ${G}%-20s${N} %s\n" "config dir:" "$NOUS_DIR/config"
 printf "\n"
-printf "${C}  Next steps:${N}\n"
+printf "${C}  Usage:${N}\n"
 printf "\n"
-printf "  %-25s %s\n" "cd ~/my-project" "go to any project"
-printf "  %-25s %s\n" "nous sync" "setup dev/ + skills + AGENTS.md in project"
+printf "  %-30s %s\n" "cd ~/my-project" ""
+printf "  %-30s %s\n" "nous sync" "setup project: dev/ + .agent/ + AGENTS.md + skills"
+printf "  %-30s %s\n" "nous skills" "install/update skills in current project"
 printf "\n"
 
 # ── PATH hint: detect shell and show correct rc file ──────────────────────

@@ -4,12 +4,11 @@
 #
 # What this installs:
 #   $env:LOCALAPPDATA\nous\bin\nous.exe — NOUS binary
-#   $env:LOCALAPPDATA\nous\skills — skills (AGENTS.md)
-#   $HOME\.nous\config — agent configs
+#   ~/.nous/skills/                     — predefined skills
 #
-# To activate a project:
-#   cd C:\my-project; nous sdd-init
-#   cd C:\my-project; nous sync
+# To use:
+#   nous sync        # setup project (dev/ + .agent/ + AGENTS.md + skills)
+#   nous skills      # install skills into current project
 
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -17,6 +16,7 @@ $GITHUB_OWNER = "Danelaton"
 $GITHUB_REPO = "NOUS"
 $NOUS_DIR = Join-Path $HOME ".nous"
 $SKILLS_DIR = Join-Path $NOUS_DIR "skills"
+$INSTALL_DIR = Join-Path $env:LOCALAPPDATA "nous\bin"
 
 # Auto-detect latest tag from GitHub API
 $VERSION = try {
@@ -35,15 +35,35 @@ function Write-Dim   { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Gra
 
 Write-Host ""
 Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
-Write-Host "[NOUS]   NOUS - AI Ecosystem Configurator"               -ForegroundColor Cyan
-Write-Host "[NOUS]   Version: $VERSION"                          -ForegroundColor Cyan
+Write-Host "[NOUS]   NOUS — AI Skills Installer"                      -ForegroundColor Cyan
+Write-Host "[NOUS]   Version: $VERSION"                               -ForegroundColor Cyan
 Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ============================================================================
-# PHASE 1: Install NOUS binary
+# PHASE 1: Remove previous installation (clean upgrade)
 # ============================================================================
-Write-Step "Phase 1/5: Installing NOUS binary..."
+Write-Step "Phase 1/4: Removing previous installation..."
+
+$oldExe = Join-Path $INSTALL_DIR "nous.exe"
+if (Test-Path $oldExe) {
+    Remove-Item -Force $oldExe
+    Write-Dim "Previous binary removed"
+} else {
+    Write-Dim "No previous binary found"
+}
+
+# Also clean up any go-installed binary in the same dir
+$goInstalled = Get-Command nous -ErrorAction SilentlyContinue
+if ($goInstalled -and $goInstalled.Source -ne $oldExe) {
+    Write-Dim "Previous binary at $($goInstalled.Source) will be replaced"
+}
+
+# ============================================================================
+# PHASE 2: Install NOUS binary
+# ============================================================================
+Write-Host ""
+Write-Step "Phase 2/4: Installing NOUS binary..."
 
 $NOUS_INSTALLED = $false
 
@@ -68,8 +88,7 @@ function Install-Binary {
 
     Expand-Archive -Path $zipPath -DestinationPath $tmp -Force
 
-    $installDir = Join-Path $env:LOCALAPPDATA "nous\bin"
-    New-Item -ItemType Directory -Path $installDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null
 
     $exeSrc = Get-ChildItem $tmp -Filter "nous.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
     if (-not $exeSrc) {
@@ -77,16 +96,16 @@ function Install-Binary {
         Remove-Item -Recurse -Force $tmp
         return $false
     }
-    Copy-Item $exeSrc (Join-Path $installDir "nous.exe") -Force
+    Copy-Item $exeSrc (Join-Path $INSTALL_DIR "nous.exe") -Force
 
     $currentPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
-    if ($currentPath -notlike "*$installDir*") {
-        [System.Environment]::SetEnvironmentVariable("PATH", "$installDir;$currentPath", "User")
+    if ($currentPath -notlike "*$INSTALL_DIR*") {
+        [System.Environment]::SetEnvironmentVariable("PATH", "$INSTALL_DIR;$currentPath", "User")
     }
-    $env:PATH = "$installDir;$env:PATH"
+    $env:PATH = "$INSTALL_DIR;$env:PATH"
 
     Remove-Item -Recurse -Force $tmp
-    Write-Ok "nous $VERSION installed to $installDir"
+    Write-Ok "nous $VERSION installed to $INSTALL_DIR"
     return $true
 }
 
@@ -95,16 +114,15 @@ function Install-Go {
         Write-Err "Go not found — install from https://go.dev/dl/"
         return $false
     }
-    $gobin = Join-Path $env:LOCALAPPDATA "nous\bin"
-    New-Item -ItemType Directory -Path $gobin -Force | Out-Null
-    $env:GOBIN = $gobin
+    New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null
+    $env:GOBIN = $INSTALL_DIR
     go install "github.com/Danelaton/NOUS/cmd/nous@$VERSION" 2>$null
-    $env:PATH = "$gobin;$env:PATH"
+    $env:PATH = "$INSTALL_DIR;$env:PATH"
     return [bool](Get-Command nous -ErrorAction SilentlyContinue)
 }
 
-if (-not $NOUS_INSTALLED) { Install-Binary; $NOUS_INSTALLED = $? }
-if (-not $NOUS_INSTALLED) { Install-Go; $NOUS_INSTALLED = $? }
+$NOUS_INSTALLED = Install-Binary
+if (-not $NOUS_INSTALLED) { $NOUS_INSTALLED = Install-Go }
 
 if (-not $NOUS_INSTALLED) {
     Write-Err "All install methods failed."
@@ -113,18 +131,20 @@ if (-not $NOUS_INSTALLED) {
 }
 
 # ============================================================================
-# PHASE 2: Install skills from GitHub
+# PHASE 3: Download skills to ~/.nous/skills/
 # ============================================================================
 Write-Host ""
-Write-Step "Phase 2/5: Installing skills..."
+Write-Step "Phase 3/4: Downloading skills to ~/.nous/skills/..."
 
 New-Item -ItemType Directory -Path $SKILLS_DIR -Force | Out-Null
+
+# Download AGENTS.md
 $AGENTS_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/installs/skeleton/AGENTS.md"
 try {
     Invoke-WebRequest -Uri $AGENTS_URL -OutFile (Join-Path $SKILLS_DIR "AGENTS.md") -UseBasicParsing
-    Write-Ok "AGENTS.md installed"
+    Write-Ok "AGENTS.md downloaded"
 } catch {
-    Write-Warn "Could not download AGENTS.md — skipping skills"
+    Write-Warn "Could not download AGENTS.md — skipping"
 }
 
 # Download skills folders from installs/skills/
@@ -149,51 +169,27 @@ function Install-SkillsFolder($repoPath, $destDir) {
 }
 
 Install-SkillsFolder "installs/skills" $SKILLS_DIR
-Write-Ok "Skills folder installed"
+Write-Ok "Skills downloaded to $SKILLS_DIR"
 
 # ============================================================================
-# PHASE 3: Create ~/.nous/ structure
+# PHASE 4: Summary
 # ============================================================================
-Write-Host ""
-Write-Step "Phase 3/5: Creating ~/.nous/ structure..."
-
-$configDir = Join-Path $NOUS_DIR "config"
-if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
-# $SKILLS_DIR is already ~/.nous/skills/ — no copy needed
-Write-Ok "~/.nous/ ready"
-
-# ============================================================================
-# PHASE 4: Run nous install (detect + inject agent configs)
-# ============================================================================
-Write-Host ""
-Write-Step "Phase 4/5: Detecting agents and configuring..."
-
 $nousExe = Get-Command nous -ErrorAction SilentlyContinue
-if ($nousExe) {
-    nous install 2>$null
-    if ($LASTEXITCODE -ne 0) { Write-Warn "Agent configuration skipped — run 'nous sync' manually" }
-} else {
-    Write-Warn "nous not in PATH — restart shell then run 'nous sync'"
-}
-
-# ============================================================================
-# PHASE 5: Summary
-# ============================================================================
 $nousPath = if ($nousExe) { $nousExe.Source } else { "restart shell to activate" }
 
 Write-Host ""
 Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
-Write-Host "[NOUS]   NOUS Installation Complete"                      -ForegroundColor Cyan
-Write-Host "[NOUS]   Version: $VERSION"                            -ForegroundColor Cyan
+Write-Host "[NOUS]   Installation Complete"                           -ForegroundColor Cyan
+Write-Host "[NOUS]   Version: $VERSION"                               -ForegroundColor Cyan
 Write-Host "[NOUS] ================================================" -ForegroundColor Cyan
-Write-Host ("[NOUS]   {0,-20} {1}" -f "nous binary:", $nousPath)   -ForegroundColor Green
-Write-Host ("[NOUS]   {0,-20} {1}" -f "skills:", $SKILLS_DIR)     -ForegroundColor Green
-Write-Host ("[NOUS]   {0,-20} {1}" -f "config dir:", $configDir)     -ForegroundColor Green
+Write-Host ("[NOUS]   {0,-20} {1}" -f "nous binary:", $nousPath)     -ForegroundColor Green
+Write-Host ("[NOUS]   {0,-20} {1}" -f "skills:", $SKILLS_DIR)        -ForegroundColor Green
 Write-Host ""
-Write-Host "[NOUS]   Next steps:" -ForegroundColor Cyan
+Write-Host "[NOUS]   Usage:" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[NOUS]   cd C:\my-project     # go to any project"
-Write-Host "[NOUS]   nous sync            # setup dev/ + skills + AGENTS.md in project"
+Write-Host "[NOUS]   cd C:\my-project"
+Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agent/ + AGENTS.md + skills"
+Write-Host "[NOUS]   nous skills          # install/update skills in current project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
 Write-Host ""
