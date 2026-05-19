@@ -22,7 +22,7 @@ VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO
 
 if [ -z "$VERSION" ]; then
     printf "[NOUS] Could not fetch latest release — using default version\n"
-    VERSION="v2026.4.14-1"
+    VERSION="v2026.5.19"
 fi
 
 SKILLS_DIR="$HOME/.nous/skills"

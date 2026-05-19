@@ -24,7 +24,7 @@ $VERSION = try {
     $release.tag_name
 } catch {
     Write-Host "[NOUS] Could not fetch latest release — using default version" -ForegroundColor Yellow
-    "v2026.4.14-1"
+    "v2026.5.19"
 }
 
 function Write-Step  { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Cyan }
