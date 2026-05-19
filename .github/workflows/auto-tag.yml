@@ -16,7 +16,7 @@ jobs:
 
       - name: Generate and push tag
         run: |
-          TAG="v$(date -u +'%Y.%m.%d.%H%M')"
+          TAG="v$(date -u +'%Y.%m.%d.%H%M%S')"
           echo "Creating tag: $TAG"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
