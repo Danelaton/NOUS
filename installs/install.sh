@@ -128,7 +128,7 @@ info "Phase 3/4: Downloading skills to ~/.nous/skills/..."
 mkdir -p "$SKILLS_DIR"
 
 # Download AGENTS.md
-AGENTS_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${VERSION}/installs/skeleton/AGENTS.md"
+AGENTS_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/installs/skeleton/AGENTS.md"
 if curl -fsSL "$AGENTS_URL" -o "$SKILLS_DIR/AGENTS.md" 2>/dev/null; then
     success "AGENTS.md downloaded"
 else

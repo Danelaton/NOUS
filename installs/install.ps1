@@ -139,7 +139,7 @@ Write-Step "Phase 3/4: Downloading skills to ~/.nous/skills/..."
 New-Item -ItemType Directory -Path $SKILLS_DIR -Force | Out-Null
 
 # Download AGENTS.md
-$AGENTS_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/installs/skeleton/AGENTS.md"
+$AGENTS_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/main/installs/skeleton/AGENTS.md"
 try {
     Invoke-WebRequest -Uri $AGENTS_URL -OutFile (Join-Path $SKILLS_DIR "AGENTS.md") -UseBasicParsing
     Write-Ok "AGENTS.md downloaded"
