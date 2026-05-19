@@ -261,6 +261,7 @@ AAAK:
 ## 8. SECURITY & STANDARDS
 
 - **Dependency Management:** Usa exclusivamente uv. Prohibido el uso de pip.
+- **Virtual Environments:** Always activate `.venv` before running Python commands. The `.venv/` directory must be in `.gitignore` — never commit it. Creation: `uv venv .venv`. Activation: `source .venv/bin/activate` (Linux/macOS) or `.venv\Scripts\Activate.ps1` (Windows). All `uv` commands must run with the virtual environment active.
 - **Secrets & .env:** Prohibido hardcodear credenciales. Toda clave, token o secreto debe almacenarse exclusivamente en .env y ser cargado mediante variables de entorno.
 - **Credential Persistence:** Si el usuario comparte credenciales, API Keys o secretos directamente en la conversación, el agente debe documentarlos inmediatamente en el archivo .env.
 - **SSL:** En clientes HTTP, usa verify=os.environ.get("VERIFY_SSL", "True").lower() == "true".

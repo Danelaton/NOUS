@@ -99,9 +99,30 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 	},
 }
 
+var skillsCmd = &cobra.Command{
+	Use:   "skills",
+	Short: "Sync skills from ~/.nous/skills/ into .agent/skills/ (merge, no delete)",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		projectDir, _ := cmd.Flags().GetString("dir")
+		if projectDir == "" {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("failed to get current directory: %w", err)
+			}
+			projectDir = cwd
+		}
+		orch, err := install.NewOrchestrator()
+		if err != nil {
+			return err
+		}
+		return orch.SyncSkills(projectDir)
+	},
+}
+
 func init() {
-	rootCmd.AddCommand(installCmd, statusCmd, syncCmd)
+	rootCmd.AddCommand(installCmd, statusCmd, syncCmd, skillsCmd)
 	syncCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
+	skillsCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
 }
 
 func Execute() {

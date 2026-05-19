@@ -178,7 +178,7 @@ printf "\n"
 info "Phase 3/5: Creating ~/.nous/ structure..."
 
 mkdir -p "$NOUS_DIR/config"
-mkdir -p "$NOUS_DIR/skills"
+# $SKILLS_DIR is already $HOME/.nous/skills/ — no copy needed
 
 success "~/.nous/ ready"
 

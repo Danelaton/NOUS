@@ -213,12 +213,11 @@ CODE — Full name, role, project association
 			}
 			srcPath := filepath.Join(skillsSrcDir, entry.Name())
 			dstPath := filepath.Join(skillsDstDir, entry.Name())
-			// Remove existing if present
-			os.RemoveAll(dstPath)
-			if err := copyDir(srcPath, dstPath); err != nil {
-				fmt.Printf("[NOUS] Warning: failed to copy skill %s: %v\n", entry.Name(), err)
+			// Merge: overwrite files that exist in src, keep files only in dst
+			if err := mergeDir(srcPath, dstPath); err != nil {
+				fmt.Printf("[NOUS] Warning: failed to merge skill %s: %v\n", entry.Name(), err)
 			} else {
-				fmt.Printf("[NOUS] skill %s installed in project\n", entry.Name())
+				fmt.Printf("[NOUS] skill %s merged into project\n", entry.Name())
 			}
 		}
 	}
@@ -333,6 +332,53 @@ func copyFile(src, dst string) error {
 
 // copyDir copies a directory recursively from src to dst.
 func copyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relPath)
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+		return copyFile(path, dstPath)
+	})
+}
+
+// SyncSkills copies skills from ~/.nous/skills/ to .agent/skills/ using merge (no delete).
+func (o *Orchestrator) SyncSkills(projectDir string) error {
+	fmt.Printf("[NOUS] Syncing skills (merge)...\n")
+	skillsSrcDir := filepath.Join(o.nousDir, "skills")
+	skillsDstDir := filepath.Join(projectDir, ".agent", "skills")
+	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .agent/skills/: %w", err)
+	}
+	entries, err := os.ReadDir(skillsSrcDir)
+	if err != nil {
+		return fmt.Errorf("failed to read ~/.nous/skills/: %w", err)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() || entry.Name() == "config" {
+			continue
+		}
+		srcPath := filepath.Join(skillsSrcDir, entry.Name())
+		dstPath := filepath.Join(skillsDstDir, entry.Name())
+		if err := mergeDir(srcPath, dstPath); err != nil {
+			fmt.Printf("[NOUS] Warning: failed to merge skill %s: %v\n", entry.Name(), err)
+		} else {
+			fmt.Printf("[NOUS] skill %s merged into project\n", entry.Name())
+		}
+	}
+	fmt.Printf("[NOUS] Skills sync complete\n")
+	return nil
+}
+
+// mergeDir copies files from src to dst without removing existing content.
+// Existing files in dst are overwritten only if they exist in src.
+func mergeDir(src, dst string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

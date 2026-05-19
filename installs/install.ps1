@@ -15,8 +15,8 @@ $ErrorActionPreference = "SilentlyContinue"
 
 $GITHUB_OWNER = "Danelaton"
 $GITHUB_REPO = "NOUS"
-$SKILLS_DIR = Join-Path $env:LOCALAPPDATA "nous\skills"
 $NOUS_DIR = Join-Path $HOME ".nous"
+$SKILLS_DIR = Join-Path $NOUS_DIR "skills"
 
 # Auto-detect latest tag from GitHub API
 $VERSION = try {
@@ -158,19 +158,8 @@ Write-Host ""
 Write-Step "Phase 3/5: Creating ~/.nous/ structure..."
 
 $configDir = Join-Path $NOUS_DIR "config"
-$nousSkillsDir = Join-Path $NOUS_DIR "skills"
 if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
-if (-not (Test-Path $nousSkillsDir)) { New-Item -ItemType Directory -Path $nousSkillsDir -Force | Out-Null }
-
-if (Test-Path (Join-Path $SKILLS_DIR "AGENTS.md")) {
-    Copy-Item (Join-Path $SKILLS_DIR "AGENTS.md") $nousSkillsDir -Force
-}
-# Copy skill folders (e.g. skill-creator/) to ~/.nous/skills/
-Get-ChildItem $SKILLS_DIR -Directory | ForEach-Object {
-    $dest = Join-Path $nousSkillsDir $_.Name
-    if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
-    Copy-Item $_.FullName $dest -Recurse -Force
-}
+# $SKILLS_DIR is already ~/.nous/skills/ — no copy needed
 Write-Ok "~/.nous/ ready"
 
 # ============================================================================
