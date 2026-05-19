@@ -185,12 +185,12 @@ CODE — Full name, role, project association
 	// ── 7. Copy AGENTS.md to project ─────────────────────────────────────────
 	agentsSrc := filepath.Join(o.nousDir, "skills", "AGENTS.md")
 	if _, err := os.Stat(agentsSrc); err != nil {
-		return fmt.Errorf("AGENTS.md not found in ~/.nous/skills/: run 'nous install' first")
+		fmt.Printf("[NOUS] Warning: AGENTS.md not found in ~/.nous/skills/ — skipping (run 'nous install' to download skills)\n")
+	} else if err := copyFile(agentsSrc, agentsDst); err != nil {
+		fmt.Printf("[NOUS] Warning: failed to copy AGENTS.md: %v\n", err)
+	} else {
+		fmt.Printf("[NOUS] AGENTS.md installed in project\n")
 	}
-	if err := copyFile(agentsSrc, agentsDst); err != nil {
-		return fmt.Errorf("failed to copy AGENTS.md to project: %w", err)
-	}
-	fmt.Printf("[NOUS] AGENTS.md installed in project\n")
 
 	// ── 8. Copy skill folders to .agent/skills/ ──────────────────────────────
 	skillsSrcDir := filepath.Join(o.nousDir, "skills")
