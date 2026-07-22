@@ -7,7 +7,7 @@
 #   ~/.nous/skills/                     — predefined skills
 #
 # To use:
-#   nous sync        # setup project (dev/ + .agent/ + AGENTS.md + skills)
+#   nous sync        # setup project (dev/ + .agents/ + AGENTS.md + skills)
 #   nous skills      # install skills into current project
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -188,7 +188,7 @@ Write-Host ""
 Write-Host "[NOUS]   Usage:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project"
-Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agent/ + AGENTS.md + skills"
+Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agents/ + AGENTS.md + skills"
 Write-Host "[NOUS]   nous skills          # install/update skills in current project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
