@@ -69,7 +69,7 @@ func (o *Orchestrator) Run() error {
 	return nil
 }
 
-// SetupProject creates the project structure: dev/, .agent/, and copies AGENTS.md.
+// SetupProject creates the project structure: dev/, .agents/, and copies AGENTS.md.
 func (o *Orchestrator) SetupProject(projectDir string) error {
 	fmt.Printf("[NOUS] Setting up project structure...\n")
 
@@ -90,16 +90,16 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 	}
 	fmt.Printf("[NOUS] dev/ structure created\n")
 
-	// ── 2. Create .agent/ directory ─────────────────────────────────────────
-	agentDir := filepath.Join(projectDir, ".agent")
+	// ── 2. Create .agents/ directory ─────────────────────────────────────────
+	agentDir := filepath.Join(projectDir, ".agents")
 	agentSkillsDir := filepath.Join(agentDir, "skills")
 	if err := os.MkdirAll(agentSkillsDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .agent/: %w", err)
+		return fmt.Errorf("failed to create .agents/: %w", err)
 	}
-	fmt.Printf("[NOUS] .agent/ directory created\n")
+	fmt.Printf("[NOUS] .agents/ directory created\n")
 
-	// ── 3. Create memory files in .agent/ ─────────────────────────────────────
-	// .agent/MEMORY.md — AAAK index (empty template)
+	// ── 3. Create memory files in .agents/ ─────────────────────────────────────
+	// .agents/MEMORY.md — AAAK index (empty template)
 	memoryContent := `# NOUS Memory Index
 
 ## Meta
@@ -124,9 +124,9 @@ CODE — Full name, role, project association
 	if err := os.WriteFile(filepath.Join(agentDir, "MEMORY.md"), []byte(memoryContent), 0644); err != nil {
 		return fmt.Errorf("failed to create MEMORY.md: %w", err)
 	}
-	fmt.Printf("[NOUS] .agent/MEMORY.md created\n")
+	fmt.Printf("[NOUS] .agents/MEMORY.md created\n")
 
-	// .agent/docs_index.md — document map (empty template)
+	// .agents/docs_index.md — document map (empty template)
 	docsIndexContent := `# NOUS Document Index
 
 ## docs/ (TRACKED — ADRs)
@@ -142,14 +142,14 @@ CODE — Full name, role, project association
 	if err := os.WriteFile(filepath.Join(agentDir, "docs_index.md"), []byte(docsIndexContent), 0644); err != nil {
 		return fmt.Errorf("failed to create docs_index.md: %w", err)
 	}
-	fmt.Printf("[NOUS] .agent/docs_index.md created\n")
+	fmt.Printf("[NOUS] .agents/docs_index.md created\n")
 
 	// ── 4. Create dev/docs/ log files ────────────────────────────────────────
 	devDocsFiles := map[string]string{
-		"session_log.md":    "# Session Log\n\nAppend-only log of agent sessions.\n",
+		"session_log.md":     "# Session Log\n\nAppend-only log of agent sessions.\n",
 		"troubleshooting.md": "# Troubleshooting\n\nKnown issues and solutions.\n",
 		"migration_log.md":   "# Migration Log\n\nDatabase and system migrations.\n",
-		"team_context.md":     "# Team Context\n\nRoles, timezones, preferences.\n",
+		"team_context.md":    "# Team Context\n\nRoles, timezones, preferences.\n",
 	}
 	for filename, content := range devDocsFiles {
 		path := filepath.Join(projectDir, "dev", "docs", filename)
@@ -163,12 +163,12 @@ CODE — Full name, role, project association
 
 	// ── 5. Add entries to .gitignore ──────────────────────────────────────────
 	gitignore := filepath.Join(projectDir, ".gitignore")
-	for _, entry := range []string{"dev/", ".agent/"} {
+	for _, entry := range []string{"dev/", ".agents/"} {
 		if err := addGitignoreEntry(gitignore, entry); err != nil {
 			fmt.Printf("[NOUS] Warning: could not update .gitignore: %v\n", err)
 		}
 	}
-	fmt.Printf("[NOUS] dev/ and .agent/ added to .gitignore\n")
+	fmt.Printf("[NOUS] dev/ and .agents/ added to .gitignore\n")
 
 	// ── 6. Backup existing AGENTS.md ─────────────────────────────────────────
 	agentsDst := filepath.Join(projectDir, "AGENTS.md")
@@ -192,11 +192,11 @@ CODE — Full name, role, project association
 		fmt.Printf("[NOUS] AGENTS.md installed in project\n")
 	}
 
-	// ── 8. Copy skill folders to .agent/skills/ ──────────────────────────────
+	// ── 8. Copy skill folders to .agents/skills/ ──────────────────────────────
 	skillsSrcDir := filepath.Join(o.nousDir, "skills")
-	skillsDstDir := filepath.Join(projectDir, ".agent", "skills")
+	skillsDstDir := filepath.Join(projectDir, ".agents", "skills")
 	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .agent/skills/: %w", err)
+		return fmt.Errorf("failed to create .agents/skills/: %w", err)
 	}
 	entries, err := os.ReadDir(skillsSrcDir)
 	if err == nil {
@@ -279,13 +279,13 @@ func copyDir(src, dst string) error {
 	})
 }
 
-// SyncSkills copies skills from ~/.nous/skills/ to .agent/skills/ using merge (no delete).
+// SyncSkills copies skills from ~/.nous/skills/ to .agents/skills/ using merge (no delete).
 func (o *Orchestrator) SyncSkills(projectDir string) error {
 	fmt.Printf("[NOUS] Syncing skills (merge)...\n")
 	skillsSrcDir := filepath.Join(o.nousDir, "skills")
-	skillsDstDir := filepath.Join(projectDir, ".agent", "skills")
+	skillsDstDir := filepath.Join(projectDir, ".agents", "skills")
 	if err := os.MkdirAll(skillsDstDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .agent/skills/: %w", err)
+		return fmt.Errorf("failed to create .agents/skills/: %w", err)
 	}
 	entries, err := os.ReadDir(skillsSrcDir)
 	if err != nil {

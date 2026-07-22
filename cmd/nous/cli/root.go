@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Short: "NOUS — AI Skills Installer for coding agents",
 	Long: `NOUS installs AI agent skills into your projects.
 
-  nous sync     # setup project: dev/ + .agent/ + AGENTS.md + skills
+  nous sync     # setup project: dev/ + .agents/ + AGENTS.md + skills
   nous skills   # install/update skills from ~/.nous/skills/
   nous status   # show installed skills and runtime info
 
@@ -68,13 +68,13 @@ var syncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync skills and setup project structure",
 	Long: `Creates dev/ directory structure, copies AGENTS.md into the project,
-and syncs skills from ~/.nous/skills/ into .agent/skills/.
+and syncs skills from ~/.nous/skills/ into .agents/skills/.
 
 Creates:
   dev/sandbox/  dev/tmp-repos/  dev/docs/
   dev/scripts/   dev/tests/      dev/backups/
-  .agent/MEMORY.md  .agent/docs_index.md  .agent/skills/
-  .gitignore (adds dev/ and .agent/ if missing)
+  .agents/MEMORY.md  .agents/docs_index.md  .agents/skills/
+  .gitignore (adds dev/ and .agents/ if missing)
 
 Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -101,7 +101,7 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 
 var skillsCmd = &cobra.Command{
 	Use:   "skills",
-	Short: "Sync skills from ~/.nous/skills/ into .agent/skills/ (merge, no delete)",
+	Short: "Sync skills from ~/.nous/skills/ into .agents/skills/ (merge, no delete)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectDir, _ := cmd.Flags().GetString("dir")
 		if projectDir == "" {
