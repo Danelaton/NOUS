@@ -36,15 +36,15 @@ Every skill is a folder with at least one required file:
 
 ### Step 2: Create the folder
 
-Place it inside `.agent/skills/` in your project:
+Place it inside `.agents/skills/` in your project:
 
 ```
-.agent/skills/<skill-name>/
+.agents/skills/<skill-name>/
 ```
 
 For global skills (shared across projects), place in `~/.nous/skills/<skill-name>/`.
 
-For skills distributed with `nous install` (default skills shipped with NOUS itself), place in `installs/skills/<skill-name>/` in the NOUS repository. These are downloaded to `~/.nous/skills/` on install and synced to `.agent/skills/` on every project.
+For skills distributed with `nous install` (default skills shipped with NOUS itself), place in `installs/skills/<skill-name>/` in the NOUS repository. These are downloaded to `~/.nous/skills/` on install and synced to `.agents/skills/` on every project.
 
 ### Step 3: Write SKILL.md
 
@@ -139,7 +139,7 @@ Before finishing a skill, verify:
 
 When creating a skill, produce:
 
-1. Skill folder path: `.agent/skills/<name>/`
+1. Skill folder path: `.agents/skills/<name>/`
 2. SKILL.md with frontmatter + content
 3. Any supporting files (scripts/, examples/, resources/) as needed
 
@@ -148,4 +148,4 @@ When creating a skill, produce:
 - Skills are discovered progressively: agent sees name + description first, reads full content when relevant
 - You don't need to explicitly invoke skills — the agent decides based on context, but you can reference a skill by name to ensure it's loaded
 - Global skills in `~/.nous/skills/` apply to all projects
-- Project skills in `.agent/skills/` apply only to that project
+- Project skills in `.agents/skills/` apply only to that project

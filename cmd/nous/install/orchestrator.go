@@ -98,68 +98,10 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 	}
 	fmt.Printf("[NOUS] .agents/ directory created\n")
 
-	// ── 3. Create memory files in .agents/ ─────────────────────────────────────
-	// .agents/MEMORY.md — AAAK index (empty template)
-	memoryContent := `# NOUS Memory Index
-
-## Meta
-last_updated:
-session_count: 0
-agent_version: v2026.4.14
-
-## Entities (CODED — use AAAK)
-CODE — Full name, role, project association
-
-## Decisions Log
-
-## Current Work
-
-## Open Issues
-
-## Session Log
-
-## Notes (free)
-
-`
-	if err := os.WriteFile(filepath.Join(agentDir, "MEMORY.md"), []byte(memoryContent), 0644); err != nil {
-		return fmt.Errorf("failed to create MEMORY.md: %w", err)
+	// ── 3. Initialize project memory and OKF knowledge bundle ────────────────
+	if err := initializeKnowledge(agentDir); err != nil {
+		return err
 	}
-	fmt.Printf("[NOUS] .agents/MEMORY.md created\n")
-
-	// .agents/docs_index.md — document map (empty template)
-	docsIndexContent := `# NOUS Document Index
-
-## docs/ (TRACKED — ADRs)
-
-| ADR | Topic | Summary | Date |
-|-----|-------|---------|------|
-
-## dev/docs/ (NOT TRACKED — Logs & References)
-
-| File | Content | Last Updated |
-|------|---------|-------------|
-`
-	if err := os.WriteFile(filepath.Join(agentDir, "docs_index.md"), []byte(docsIndexContent), 0644); err != nil {
-		return fmt.Errorf("failed to create docs_index.md: %w", err)
-	}
-	fmt.Printf("[NOUS] .agents/docs_index.md created\n")
-
-	// ── 4. Create dev/docs/ log files ────────────────────────────────────────
-	devDocsFiles := map[string]string{
-		"session_log.md":     "# Session Log\n\nAppend-only log of agent sessions.\n",
-		"troubleshooting.md": "# Troubleshooting\n\nKnown issues and solutions.\n",
-		"migration_log.md":   "# Migration Log\n\nDatabase and system migrations.\n",
-		"team_context.md":    "# Team Context\n\nRoles, timezones, preferences.\n",
-	}
-	for filename, content := range devDocsFiles {
-		path := filepath.Join(projectDir, "dev", "docs", filename)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-				fmt.Printf("[NOUS] Warning: failed to create dev/docs/%s: %v\n", filename, err)
-			}
-		}
-	}
-	fmt.Printf("[NOUS] dev/docs/ log files created\n")
 
 	// ── 5. Add entries to .gitignore ──────────────────────────────────────────
 	gitignore := filepath.Join(projectDir, ".gitignore")
@@ -259,6 +201,119 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	return os.Chmod(dst, srcInfo.Mode())
+}
+
+func initializeKnowledge(agentDir string) error {
+	files := map[string]string{
+		"MEMORY.md": `# NOUS Memory Router
+
+## Active Context
+
+- Current work:
+- Blockers:
+- Next action:
+
+## Knowledge Router
+
+- Start with [OKF/index.md](OKF/index.md).
+- Follow only links relevant to the current task.
+- Store durable architecture, decisions, runbooks, and solved problems in the OKF bundle.
+- Keep this file concise; it is a router and working-state summary, not the knowledge archive.
+
+## Legacy Context
+
+- If ` + "`docs_index.md`" + ` exists, treat it as a legacy index and preserve it.
+- If ` + "`../dev/docs/`" + ` contains useful history, migrate durable knowledge into OKF incrementally.
+`,
+		filepath.Join("OKF", "index.md"): `---
+okf_version: "0.1"
+---
+
+# Project Knowledge
+
+Read this catalog first, then open only the concepts relevant to the task.
+
+## Core
+
+* [Architecture](architecture.md) - High-level system design and boundaries.
+* [Workflows](workflows/) - Operational procedures and runbooks.
+* [Decisions](decisions/) - Durable technical and product decisions.
+* [Troubleshooting](troubleshooting/) - Diagnosed failures and verified solutions.
+* [References](references/) - Curated project references and external sources.
+* [Update log](log.md) - Major knowledge milestones, newest first.
+`,
+		filepath.Join("OKF", "log.md"): `# Project Knowledge Update Log
+
+`,
+		filepath.Join("OKF", "architecture.md"): `---
+type: Architecture
+title: Project Architecture
+description: High-level system structure, boundaries, dependencies, and constraints.
+tags: [architecture]
+---
+
+# Project Architecture
+
+Record only verified architectural knowledge. Link to supporting concepts and sources.
+`,
+		filepath.Join("OKF", "workflows", "index.md"): `# Workflows
+
+* [Project runbook](runbook.md) - Verified commands for setup, development, testing, deployment, and rollback.
+`,
+		filepath.Join("OKF", "workflows", "runbook.md"): `---
+type: Workflow
+title: Project Runbook
+description: Verified operational commands and recovery procedures for this project.
+tags: [workflow, runbook]
+---
+
+# Project Runbook
+
+Document commands only after they have been verified.
+`,
+		filepath.Join("OKF", "decisions", "index.md"): `# Decisions
+
+Add one concept document per durable decision and link it here.
+`,
+		filepath.Join("OKF", "troubleshooting", "index.md"): `# Troubleshooting
+
+Add diagnosed failures and verified solutions as concept documents, then link them here.
+`,
+		filepath.Join("OKF", "references", "index.md"): `# References
+
+Add curated project references as concept documents, then link them here.
+`,
+	}
+
+	for relativePath, content := range files {
+		path := filepath.Join(agentDir, relativePath)
+		created, err := writeFileIfNotExists(path, content)
+		if err != nil {
+			return fmt.Errorf("failed to initialize %s: %w", relativePath, err)
+		}
+		if created {
+			fmt.Printf("[NOUS] .agents/%s created\n", filepath.ToSlash(relativePath))
+		}
+	}
+
+	fmt.Printf("[NOUS] Project memory and OKF knowledge bundle ready\n")
+	return nil
+}
+
+func writeFileIfNotExists(path, content string) (bool, error) {
+	if _, err := os.Stat(path); err == nil {
+		return false, nil
+	} else if !os.IsNotExist(err) {
+		return false, err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return false, err
+	}
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // copyDir copies a directory recursively from src to dst.

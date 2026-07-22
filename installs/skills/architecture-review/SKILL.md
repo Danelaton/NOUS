@@ -33,12 +33,12 @@ If PROJECT_MAP.md does not exist or is older than 7 days, run the `project-map` 
 Also load:
 ```bash
 cat AGENTS.md 2>/dev/null         # project conventions
-cat .agent/MEMORY.md 2>/dev/null  # past decisions
-cat .agent/knowledge/index.md 2>/dev/null  # accumulated project knowledge
+cat .agents/MEMORY.md 2>/dev/null  # active context router
+cat .agents/OKF/index.md 2>/dev/null  # durable project knowledge catalog
 ls docs/ADR_*.md 2>/dev/null      # architectural decisions on record
 ```
 
-If `.agent/knowledge/index.md` exists and has entries with topics related to architecture, dependencies, or performance, read those entries as additional context before starting the analysis.
+Follow architecture, decision, troubleshooting, and workflow links from `.agents/OKF/index.md` that are relevant to the review.
 
 ### Step 2 — Analyze for common issues
 
@@ -222,4 +222,4 @@ Before saving ARCHITECTURE_REVIEW.md:
 - If a circular dependency is detected, note it but do not assume it's always a problem (sometimes intentional)
 - Revisit ARCHITECTURE_REVIEW.md after major refactors — it goes stale quickly
 - Keep recommendations specific to this project's stack and conventions (read from PROJECT_MAP.md)
-- After generating ARCHITECTURE_REVIEW.md, if `.agent/knowledge/` exists, consider ingesting it as a high-importance knowledge entry (importance: 0.9) so architectural findings are queryable in future sessions
+- After generating ARCHITECTURE_REVIEW.md, update `.agents/OKF/architecture.md` or create a linked architecture concept containing verified durable findings

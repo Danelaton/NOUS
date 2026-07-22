@@ -27,7 +27,7 @@ Execute the steps below sequentially. All extraction uses file system commands a
 # Get top-level structure (depth 2–3)
 find . -maxdepth 3 -not -path '*/.git/*' -not -path '*/node_modules/*' \
        -not -path '*/__pycache__/*' -not -path '*/vendor/*' \
-       -not -path '*/.agent/*' -not -path '*/dev/*' | sort
+       -not -path '*/.agents/*' -not -path '*/dev/*' | sort
 ```
 
 Identify project type from structure:
@@ -192,4 +192,4 @@ Before saving PROJECT_MAP.md:
 - PROJECT_MAP.md is input for the `architecture-review` skill — keep it factual, not analytical
 - Re-run this skill when major structural changes happen (new modules, refactors)
 - If the project has an existing `README.md`, read it first as a starting point
-- After generating PROJECT_MAP.md, if `.agent/knowledge/` exists, consider ingesting it as a high-importance knowledge entry (importance: 0.9) so future queries can reference the project structure
+- After generating PROJECT_MAP.md, update `.agents/OKF/architecture.md` with verified durable structure and link to the tracked map when appropriate

@@ -7,7 +7,7 @@
 #   ~/.nous/skills/                     — predefined skills
 #
 # To use:
-#   nous sync        # setup project (dev/ + .agents/ + AGENTS.md + skills)
+#   nous sync        # setup project (dev/ + .agents/OKF/ + AGENTS.md + skills)
 #   nous skills      # install skills into current project
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -158,7 +158,7 @@ function Install-SkillsFolder($repoPath, $destDir) {
                 New-Item -ItemType Directory -Path $subDest -Force | Out-Null
                 Install-SkillsFolder $item.path $subDest
             } elseif ($item.type -eq "file") {
-                $fileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/$VERSION/$($item.path)"
+                $fileUrl = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/main/$($item.path)"
                 $destPath = Join-Path $destDir $item.name
                 try {
                     Invoke-WebRequest -Uri $fileUrl -OutFile $destPath -UseBasicParsing
@@ -188,7 +188,7 @@ Write-Host ""
 Write-Host "[NOUS]   Usage:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project"
-Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agents/ + AGENTS.md + skills"
+Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
 Write-Host "[NOUS]   nous skills          # install/update skills in current project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray

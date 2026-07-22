@@ -412,7 +412,7 @@ By default, memories are injected as a hidden `<memory>` block on the **first me
 - **Storage location:** `~/.opencode-mem/data/` — contains `registry.db` (shard index) + per-project `.db` shard files
 - **Config file format:** JSONC — supports comments (`//`) and trailing commas. Standard JSON also works (`.json` extension).
 - **`$ENV_VAR` syntax** in config values — e.g., `"memoryApiKey": "$OPENAI_API_KEY"` reads from environment. Use this to keep secrets out of the config file.
-- **`.agent/knowledge/` vs opencode-mem:** If your project uses the `knowledge` skill (file-based markdown memory), opencode-mem is independent — it's a vector DB layer on top of OpenCode sessions, not a replacement.
+- **`.agents/OKF/` vs opencode-mem:** OKF is the durable, portable project knowledge source. opencode-mem is an independent vector layer over OpenCode sessions and does not replace the OKF bundle.
 - **Multiple projects:** Each project gets its own memory shard based on directory hash. Running `nous sync` in a project just copies the skill — memory storage stays in `~/.opencode-mem/` (global, not per-project).
 - **Pinned memories** survive cleanup. Pin important architectural decisions from the web dashboard.
 - **Source code:** https://github.com/tickernelz/opencode-mem — for debugging, contributing, or building on top of it.

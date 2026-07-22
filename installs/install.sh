@@ -10,7 +10,7 @@ set -e
 #   ~/.nous/skills/                — predefined skills
 #
 # To use:
-#   nous sync        # setup project (dev/ + .agents/ + AGENTS.md + skills)
+#   nous sync        # setup project (dev/ + .agents/OKF/ + AGENTS.md + skills)
 #   nous skills      # install skills into current project
 
 GITHUB_OWNER="Danelaton"
@@ -199,7 +199,7 @@ printf "\n"
 printf "${C}  Usage:${N}\n"
 printf "\n"
 printf "  %-30s %s\n" "cd ~/my-project" ""
-printf "  %-30s %s\n" "nous sync" "setup project: dev/ + .agents/ + AGENTS.md + skills"
+printf "  %-30s %s\n" "nous sync" "setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
 printf "  %-30s %s\n" "nous skills" "install/update skills in current project"
 printf "\n"
 

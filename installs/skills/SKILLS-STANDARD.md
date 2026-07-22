@@ -18,12 +18,13 @@ nous install
   → downloads installs/skeleton/AGENTS.md  →  ~/.nous/skills/AGENTS.md
 
 nous sync (per project)
-  → copies ~/.nous/skills/<skill-name>/  →  .agent/skills/<skill-name>/
+  → copies ~/.nous/skills/<skill-name>/  →  .agents/skills/<skill-name>/
+  → initializes .agents/MEMORY.md + .agents/OKF/ without overwriting existing knowledge
   → copies ~/.nous/skills/AGENTS.md     →  project root AGENTS.md
 ```
 
 Skills in `~/.nous/skills/` are **global** — shared across all projects.
-Skills in `.agent/skills/` are **per-project** — local, not tracked in git.
+Skills in `.agents/skills/` are **per-project** — local, not tracked in git.
 
 ---
 
@@ -142,7 +143,7 @@ Before committing a skill:
 - [ ] `description` explains both what and when
 - [ ] Content has at minimum: title, When to use, How to use
 - [ ] All referenced files in `examples/`, `resources/`, `scripts/` actually exist
-- [ ] No broken paths — uses `.agent/skills/` (not `.agents/skills/`)
+- [ ] No broken paths — project skills use `.agents/skills/`
 
 ---
 
@@ -190,9 +191,9 @@ docs(readme): add macOS install instructions
 
 Add new skills to `installs/skills/<skill-name>/` in the NOUS repo. They will be:
 1. Downloaded to `~/.nous/skills/<skill-name>/` by `nous install`
-2. Copied to `.agent/skills/<skill-name>/` by `nous sync`
+2. Copied to `.agents/skills/<skill-name>/` by `nous sync`
 
-For project-specific skills not meant for distribution, place them directly in `.agent/skills/<skill-name>/` inside your project.
+For project-specific skills not meant for distribution, place them directly in `.agents/skills/<skill-name>/` inside your project.
 
 ---
 
@@ -204,10 +205,10 @@ Skills generate output files in two different locations. This is intentional:
 |--------|----------|-----|
 | `PROJECT_MAP.md` | Project root | Public project document — commitable, readable by all contributors |
 | `ARCHITECTURE_REVIEW.md` | Project root | Public project document — commitable, shareable with team |
-| `.agent/knowledge/` | `.agent/` subdirectory | Private accumulated memory — optionally excluded from git via `.gitignore` |
-| `.agent/skills/` | `.agent/` subdirectory | Skills copied by `nous sync` — do not edit manually, re-sync to update |
+| `.agents/OKF/` | `.agents/` subdirectory | Durable project knowledge in OKF v0.1 format |
+| `.agents/skills/` | `.agents/` subdirectory | Skills copied by `nous sync` — do not edit manually, re-sync to update |
 
-Root-level outputs (`PROJECT_MAP.md`, `ARCHITECTURE_REVIEW.md`) are meant to be committed and shared. `.agent/` outputs are local working state — they persist across sessions but are not necessarily tracked.
+Root-level outputs (`PROJECT_MAP.md`, `ARCHITECTURE_REVIEW.md`) are meant to be committed and shared. `.agents/` outputs are local working state — they persist across sessions but are not necessarily tracked.
 
 ---
 
@@ -219,20 +220,16 @@ When starting on a new or unfamiliar project, run the skills in this order:
 
 2. **`architecture-review`** — Analyze `PROJECT_MAP.md` and generate `ARCHITECTURE_REVIEW.md`. Identifies structural risks, coupling issues, and priority actions.
 
-3. **`knowledge` (ingest)** — Feed existing docs, specs, ADRs, and the generated files into `.agent/knowledge/`. Builds the queryable memory base.
+3. **`okf-knowledge`** — Store verified architecture, decisions, runbooks, troubleshooting, and references in `.agents/OKF/`.
 
-4. **`knowledge` (consolidate)** — Connect patterns across ingested entries. Surfaces implicit dependencies and contradictions discovered during onboarding.
+4. **`knowledge`** — Compatibility trigger for ingesting, querying, consolidating, or migrating knowledge into OKF.
 
 5. **`skill-creator`** — Once you understand the project, create custom skills for recurring workflows specific to this codebase.
 
-Skills 1–2 are stateless (generate files, no persistent state). Skills 3–4 are stateful (accumulate in `.agent/knowledge/`). Skill 5 extends the system itself.
+Skills 1–2 generate public project artifacts. Skills 3–4 maintain durable local knowledge in `.agents/OKF/`. Skill 5 extends the system itself.
 
 ---
 
-## Known issues (to be fixed)
+## Project knowledge
 
-| # | File | Line | Issue |
-|---|------|------|-------|
-| 1 | `installs/install.sh` | 131-143 | JSON parser iterates lines instead of objects — GitHub API returns multi-line JSON, so `grep/sed` parsing fails silently on macOS. Skills folder not downloaded. |
-| 2 | `installs/skills/skill-creator/SKILL.md` | 42, 140, 149 | `.agents/skills/` typo — should be `.agent/skills/` (no trailing `s`) |
-| 3 | `installs/install.sh` | 158-160 | Redundant copy: `SKILLS_DIR` and `NOUS_DIR/skills` resolve to the same path (`~/.nous/skills`). Phase 3 copies files onto themselves. |
+Use `.agents/MEMORY.md` for current work, blockers, next action, and links. Use `.agents/OKF/` for durable knowledge. Every non-reserved OKF concept requires YAML frontmatter with a non-empty `type`; `index.md` and `log.md` follow their reserved OKF structures.

@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Short: "NOUS — AI Skills Installer for coding agents",
 	Long: `NOUS installs AI agent skills into your projects.
 
-  nous sync     # setup project: dev/ + .agents/ + AGENTS.md + skills
+  nous sync     # setup project: dev/ + .agents/OKF/ + AGENTS.md + skills
   nous skills   # install/update skills from ~/.nous/skills/
   nous status   # show installed skills and runtime info
 
@@ -73,7 +73,7 @@ and syncs skills from ~/.nous/skills/ into .agents/skills/.
 Creates:
   dev/sandbox/  dev/tmp-repos/  dev/docs/
   dev/scripts/   dev/tests/      dev/backups/
-  .agents/MEMORY.md  .agents/docs_index.md  .agents/skills/
+  .agents/MEMORY.md  .agents/OKF/  .agents/skills/
   .gitignore (adds dev/ and .agents/ if missing)
 
 Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
