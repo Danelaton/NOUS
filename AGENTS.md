@@ -291,9 +291,10 @@ After meaningful work:
 All automatic release tags must follow this format:
 
 ```
-v{YYYY}.{MM}.{DD}.{HHMMSS}
+v{YYYY}.{MM}.{DD}-t{HHMMSS}
 ```
 
 - Timestamp is always **UTC** (build time).
-- Example: `v2026.05.19.143022`
+- Example: `v2026.05.19-t143022`
+- This preserves UTC date-time versioning while remaining SemVer-compatible for GoReleaser.
 - No other tag formats are accepted for automated releases.

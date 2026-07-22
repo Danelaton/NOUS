@@ -53,6 +53,7 @@ release:
     name: NOUS
   draft: false
   prerelease: false
+  make_latest: true
   name_template: "NOUS v{{ .Version }}"
 
 changelog:
