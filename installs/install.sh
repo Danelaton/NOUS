@@ -185,6 +185,21 @@ EOF
 install_skills_folder "installs/skills" "$SKILLS_DIR"
 success "Skills downloaded to $SKILLS_DIR"
 
+# Download Hermes skills to ~/.nous/hermes-skills/
+info "Downloading Hermes skills to ~/.nous/hermes-skills/..."
+HERMES_SKILLS_DIR="$NOUS_DIR/hermes-skills"
+mkdir -p "$HERMES_SKILLS_DIR"
+install_skills_folder "installs/hermes-skills" "$HERMES_SKILLS_DIR"
+
+# Download AGENTS-HERMES.md
+AGENTS_HERMES_URL="https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/installs/skeleton/AGENTS-HERMES.md"
+if curl -fsSL "$AGENTS_HERMES_URL" -o "$HERMES_SKILLS_DIR/AGENTS-HERMES.md" 2>/dev/null; then
+    success "AGENTS-HERMES.md downloaded"
+else
+    warn "Could not download AGENTS-HERMES.md — skipping"
+fi
+success "Hermes skills downloaded to $HERMES_SKILLS_DIR"
+
 # ============================================================================
 # PHASE 4: Summary
 # ============================================================================
@@ -200,6 +215,7 @@ printf "${C}  Usage:${N}\n"
 printf "\n"
 printf "  %-30s %s\n" "cd ~/my-project" ""
 printf "  %-30s %s\n" "nous sync" "setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
+printf "  %-30s %s\n" "nous sync hermes" "inject 12 engineering skills into Hermes"
 printf "  %-30s %s\n" "nous skills" "install/update skills in current project"
 printf "\n"
 
