@@ -65,6 +65,43 @@ func (o *Orchestrator) Run() error {
 	}
 
 	fmt.Printf("[NOUS] ~/.nous/ ready at: %s\n", o.nousDir)
+
+	// Phase 3: copy hermes-skills if bundled with the binary
+	hermesSkillsDst := filepath.Join(o.nousDir, "hermes-skills")
+	// Try relative to executable first (dev mode: running from source repo)
+	var hermesSkillsSrc string
+	if exe, err := os.Executable(); err == nil {
+		hermesSkillsSrc = filepath.Join(filepath.Dir(exe), "installs", "hermes-skills")
+	}
+	// Fallback: relative to nousDir
+	if _, err := os.Stat(hermesSkillsSrc); os.IsNotExist(err) {
+		hermesSkillsSrc = filepath.Join(o.nousDir, "..", "installs", "hermes-skills")
+	}
+	// Last resort: from skills dir
+	if _, err := os.Stat(hermesSkillsSrc); os.IsNotExist(err) {
+		hermesSkillsSrc = filepath.Join(o.nousDir, "skills", "hermes-skills")
+	}
+
+	if _, err := os.Stat(hermesSkillsSrc); err == nil {
+		if err := copyDir(hermesSkillsSrc, hermesSkillsDst); err != nil {
+			fmt.Printf("[NOUS] Warning: failed to copy hermes-skills: %v\n", err)
+		} else {
+			fmt.Printf("[NOUS] Hermes skills copied to ~/.nous/hermes-skills/\n")
+		}
+		// Also copy AGENTS-HERMES.md alongside skills
+		agentsHermesSrc := filepath.Join(hermesSkillsSrc, "..", "skeleton", "AGENTS-HERMES.md")
+		agentsHermesDst := filepath.Join(hermesSkillsDst, "AGENTS-HERMES.md")
+		if _, err := os.Stat(agentsHermesSrc); err == nil {
+			copyFile(agentsHermesSrc, agentsHermesDst)
+		}
+	}
+	// Also try from skeleton dir
+	skeletonSrc := filepath.Join(o.nousDir, "..", "installs", "skeleton", "AGENTS-HERMES.md")
+	if _, err := os.Stat(skeletonSrc); err == nil {
+		agentsHermesDst := filepath.Join(hermesSkillsDst, "AGENTS-HERMES.md")
+		copyFile(skeletonSrc, agentsHermesDst)
+	}
+
 	fmt.Printf("[NOUS] Run 'nous sync' in any project to install skills and project structure.\n")
 	return nil
 }
@@ -124,14 +161,26 @@ func (o *Orchestrator) SetupProject(projectDir string) error {
 		}
 	}
 
-	// ── 7. Copy AGENTS.md to project ─────────────────────────────────────────
+	// ── 7. Copy AGENTS.md (or AGENTS-HERMES.md) to project ─────────────────
+	// If Hermes is detected (~/.hermes/AGENTS-HERMES.md exists), use that
+	home, _ := os.UserHomeDir()
+	hermesAgents := filepath.Join(home, ".hermes", "AGENTS-HERMES.md")
 	agentsSrc := filepath.Join(o.nousDir, "skills", "AGENTS.md")
-	if _, err := os.Stat(agentsSrc); err != nil {
+
+	if _, err := os.Stat(hermesAgents); err == nil {
+		agentsSrc = hermesAgents
+		fmt.Printf("[NOUS] Hermes detected — using AGENTS-HERMES.md\n")
+	} else if _, err := os.Stat(agentsSrc); err != nil {
 		fmt.Printf("[NOUS] Warning: AGENTS.md not found in ~/.nous/skills/ — skipping (run 'nous install' to download skills)\n")
-	} else if err := copyFile(agentsSrc, agentsDst); err != nil {
-		fmt.Printf("[NOUS] Warning: failed to copy AGENTS.md: %v\n", err)
-	} else {
-		fmt.Printf("[NOUS] AGENTS.md installed in project\n")
+		agentsSrc = ""
+	}
+
+	if agentsSrc != "" {
+		if err := copyFile(agentsSrc, agentsDst); err != nil {
+			fmt.Printf("[NOUS] Warning: failed to copy AGENTS.md: %v\n", err)
+		} else {
+			fmt.Printf("[NOUS] AGENTS.md installed in project\n")
+		}
 	}
 
 	// ── 8. Copy skill folders to .agents/skills/ ──────────────────────────────

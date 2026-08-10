@@ -42,15 +42,16 @@ To update: re-run the same command.
 $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
 
 ~/.nous/
-  skills/                      ← predefined skills (downloaded from GitHub)
+  skills/                      ← project-level skills
     AGENTS.md
-    adk-memory-agent/
     architecture-review/
-    knowledge/                 ← compatibility alias for OKF
-    okf-knowledge/             ← durable project knowledge workflow
-    opencode-memory/
+    okf-knowledge/
     project-map/
     skill-creator/
+    SKILLS-STANDARD.md
+
+  hermes-skills/               ← Hermes-specific skills (nous sync hermes)
+    12 skills for engineering workflows
 ```
 
 ---
@@ -61,8 +62,18 @@ $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
 |---------|-------|-------------|
 | `nous install` | Global | Initialize `~/.nous/` directory structure |
 | `nous status` | Global | Show NOUS status and installed skills |
-| `nous sync` | Project | Setup project: `dev/` + `.agents/OKF/` + `AGENTS.md` + skills |
+| `nous sync [agent]` | Global/Project | Setup project OR inject agent config (hermes, claude, cursor, etc.) |
 | `nous skills` | Project | Install/update skills from `~/.nous/skills/` into `.agents/skills/` |
+
+### Agent injection (new)
+
+```bash
+nous sync hermes    # injects 12 engineering skills + OKF + AGENTS-HERMES.md
+nous sync claude    # injects Claude Code config
+nous sync cursor    # injects Cursor IDE rules
+```
+
+Supported agents: `hermes`, `claude`, `cursor`, `kiro`, `roo`, `opencode`
 
 ### Project setup
 
@@ -102,15 +113,31 @@ Every non-reserved OKF concept is Markdown with YAML frontmatter and a required 
 
 ## Included Skills
 
+### Project-level (nous sync)
+
 | Skill | What it does |
 |-------|-------------|
-| `adk-memory-agent` | Google ADK memory agent integration guide |
-| `architecture-review` | Architecture review workflow for AI agents |
-| `knowledge` | Compatibility alias that routes memory operations to OKF |
+| `architecture-review` | Analyze PROJECT_MAP.md → ARCHITECTURE_REVIEW.md |
 | `okf-knowledge` | Durable project knowledge using Open Knowledge Format v0.1 |
-| `opencode-memory` | OpenCode memory plugin implementation guide |
-| `project-map` | Project structure mapping and analysis |
-| `skill-creator` | Guide for creating new agent skills |
+| `project-map` | Scan codebase to generate structured PROJECT_MAP.md |
+| `skill-creator` | Create new skills following the Antigravity format standard |
+
+### Hermes (nous sync hermes)
+
+| Skill | What it does |
+|-------|-------------|
+| `nous-agent` | Session start, backups, git safety, OKF maintenance |
+| `architecture-review` | Architecture review from project map |
+| `codebase-design` | Shared vocabulary for deep, testable modules |
+| `domain-modeling` | Build project domain glossary and ADRs |
+| `grilling` | Design-tree interview to sharpen plans |
+| `grill-with-docs` | Grilling session that builds CONTEXT.md + ADRs |
+| `improve-codebase-architecture` | Scan for shallow modules, HTML report |
+| `okf-knowledge` | OKF v0.1 knowledge persistence |
+| `openspec` | Spec-driven development — 8-layer pipeline |
+| `project-map` | Generate structured PROJECT_MAP.md |
+| `skill-creator` | Create skills in Antigravity format |
+| `wayfinder` | Plan large work as decision tickets |
 
 ---
 

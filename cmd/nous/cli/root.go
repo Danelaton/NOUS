@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/Danelaton/NOUS/cmd/nous/install"
+	"github.com/Danelaton/NOUS/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -65,12 +66,17 @@ var statusCmd = &cobra.Command{
 }
 
 var syncCmd = &cobra.Command{
-	Use:   "sync",
+	Use:   "sync [agent]",
 	Short: "Sync skills and setup project structure",
 	Long: `Creates dev/ directory structure, copies AGENTS.md into the project,
 and syncs skills from ~/.nous/skills/ into .agents/skills/.
 
-Creates:
+With an agent name (e.g. 'hermes'), injects configuration globally
+into that agent instead of setting up a project.
+
+Supported agents: hermes, claude, cursor, kiro, roo, opencode
+
+Creates (project mode):
   dev/sandbox/  dev/tmp-repos/  dev/docs/
   dev/scripts/   dev/tests/      dev/backups/
   .agents/MEMORY.md  .agents/OKF/  .agents/skills/
@@ -78,6 +84,25 @@ Creates:
 
 Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// If an agent name is provided, inject config for that agent
+		if len(args) > 0 {
+			agentName := args[0]
+			home, _ := os.UserHomeDir()
+			nousDir := filepath.Join(home, ".nous")
+
+			for _, adapter := range config.GetAllAdapters() {
+				if adapter.AgentName() == agentName {
+					if !adapter.Detect() {
+						return fmt.Errorf("%s not detected on this system", agentName)
+					}
+					fmt.Printf("[NOUS] Injecting %s configuration...\n", agentName)
+					return adapter.Inject(nousDir)
+				}
+			}
+			return fmt.Errorf("unknown agent: %s — supported: hermes, claude, cursor, kiro, roo, opencode", agentName)
+		}
+
+		// Default: project sync
 		projectDir, _ := cmd.Flags().GetString("dir")
 		if projectDir == "" {
 			cwd, err := os.Getwd()
