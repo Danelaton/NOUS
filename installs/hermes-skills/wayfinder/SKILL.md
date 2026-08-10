@@ -1,7 +1,7 @@
 ---
 name: wayfinder
-description: Plan huge work as a map of decision tickets on the tracker.
-version: 1.0.0
+description: "Use for huge work — plan as a map of decision tickets on the tracker."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]

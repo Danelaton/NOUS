@@ -1,7 +1,7 @@
 ---
 name: grilling
-description: Design-tree interview to sharpen plans and decisions.
-version: 1.0.0
+description: "Use when a plan or decision needs sharpening before building — design-tree interview."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]

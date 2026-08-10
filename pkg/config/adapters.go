@@ -412,11 +412,22 @@ skills:
   - okf-knowledge
   - skill-creator
 instruction: |
-  NOUS engineering and knowledge skills loaded together. Use them for the
-  full pipeline: grill → openspec → plan → execute (TDD) → review. Follow
-  the workflow in nous-agent skill and the conventions in
-  ~/.hermes/OKF/_system/conventions.md. Use nous-pipeline to orchestrate the
-  full SDD flow end-to-end.
+  NOUS skills loaded — treat every skill below as active guidance for this turn.
+
+  When to use which:
+  - grilling / grill-with-docs → align requirements BEFORE writing code (build CONTEXT.md + ADRs)
+  - openspec → spec-first work: create proposal.md + tasks.md in openspec/changes/
+  - wayfinder → map huge work as decision tickets on the tracker
+  - nous-pipeline → run the full SDD flow end-to-end (grill → openspec → plan → TDD → review)
+  - project-map + architecture-review → analyze an unknown codebase
+  - improve-codebase-architecture → scan for shallow modules, present HTML report
+  - okf-knowledge → persist durable knowledge after meaningful work
+  - skill-creator → create new skills (Antigravity format, valid YAML frontmatter)
+  - nous-agent → session start protocol, backups, git safety, OKF maintenance
+
+  Session protocol: read .agents/MEMORY.md first, then OKF/index.md (progressive disclosure).
+  Language: Spanish for conversation, English for code/commits/docs/UI strings.
+  Git safety: no commit/push without explicit user confirmation after showing git diff.
 `
 	if _, err := os.Stat(bundlePath); os.IsNotExist(err) {
 		if err := os.WriteFile(bundlePath, []byte(bundleContent), 0644); err != nil {

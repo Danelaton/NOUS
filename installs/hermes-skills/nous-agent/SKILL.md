@@ -1,7 +1,7 @@
 ---
 name: nous-agent
-description: NOUS operational protocols — session start, backups, git safety, OKF maintenance.
-version: 1.0.0
+description: "Use at session start or in NOUS projects — protocols, backups, git safety, OKF maintenance."
+version: 1.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]

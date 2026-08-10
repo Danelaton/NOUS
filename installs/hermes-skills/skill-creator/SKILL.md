@@ -1,7 +1,7 @@
 ---
 name: skill-creator
-description: Create new skills following the Antigravity format standard.
-version: 1.0.0
+description: "Use to create new skills — Antigravity format with valid YAML frontmatter."
+version: 1.1.0
 author: Hermes Agent (adapted from NOUS)
 license: MIT
 platforms: [linux, macos, windows]

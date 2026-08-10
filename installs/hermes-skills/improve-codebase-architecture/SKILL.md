@@ -1,7 +1,7 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for shallow modules, present as HTML report.
-version: 1.0.0
+description: "Use when code feels shallow — scan modules, present HTML architecture report."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]

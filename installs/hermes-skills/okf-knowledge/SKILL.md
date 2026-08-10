@@ -1,7 +1,7 @@
 ---
 name: okf-knowledge
-description: Maintain durable project knowledge in OKF v0.1 format.
-version: 1.0.0
+description: "Use to persist durable project knowledge — maintain OKF v0.1 concepts, indexes, log."
+version: 1.1.0
 author: Hermes Agent (adapted from NOUS)
 license: MIT
 platforms: [linux, macos, windows]

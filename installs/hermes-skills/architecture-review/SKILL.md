@@ -1,7 +1,7 @@
 ---
 name: architecture-review
-description: Analyze PROJECT_MAP.md and produce ARCHITECTURE_REVIEW.md.
-version: 1.0.0
+description: "Use after project-map — analyze PROJECT_MAP.md, produce ARCHITECTURE_REVIEW.md."
+version: 1.1.0
 author: Hermes Agent (adapted from NOUS)
 license: MIT
 platforms: [linux, macos, windows]

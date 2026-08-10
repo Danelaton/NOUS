@@ -1,7 +1,7 @@
 ---
 name: nous-pipeline
-description: "Run NOUS SDD pipeline: grill→openspec→plan→TDD→review."
-version: 1.0.0
+description: "Use for the full SDD flow — orchestrate grill→openspec→plan→TDD→review."
+version: 1.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]

@@ -1,7 +1,7 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain glossary and ADRs.
-version: 1.0.0
+description: "Use when domain terms are fuzzy — build and sharpen the project glossary and ADRs."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]

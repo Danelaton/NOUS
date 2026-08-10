@@ -1,7 +1,7 @@
 ---
 name: openspec
-description: "Spec-driven development — OpenSpec CLI × NOUS full pipeline synergy."
-version: 2.0.0
+description: "Use when a feature needs spec-first development — proposal.md + tasks.md via OpenSpec."
+version: 2.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]

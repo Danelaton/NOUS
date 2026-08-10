@@ -1,7 +1,7 @@
 ---
 name: project-map
-description: Scan codebase to generate a structured PROJECT_MAP.md.
-version: 1.0.0
+description: "Use to map an unknown codebase — generate structured PROJECT_MAP.md."
+version: 1.1.0
 author: Hermes Agent (adapted from NOUS)
 license: MIT
 platforms: [linux, macos, windows]

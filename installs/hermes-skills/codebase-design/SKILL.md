@@ -1,7 +1,7 @@
 ---
 name: codebase-design
-description: Shared vocabulary for designing deep, testable modules.
-version: 1.0.0
+description: "Use when designing modules — shared vocabulary for deep, testable design."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]

@@ -1,7 +1,7 @@
 ---
 name: grill-with-docs
-description: Grilling session that builds CONTEXT.md and ADRs inline.
-version: 1.0.0
+description: "Use when starting feature work — grill to align requirements, build CONTEXT.md and ADRs."
+version: 1.1.0
 author: Hermes Agent (adapted from Matt Pocock/skills)
 license: MIT
 platforms: [linux, macos, windows]
