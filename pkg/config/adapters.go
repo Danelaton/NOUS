@@ -206,13 +206,16 @@ func (a *HermesAdapter) Inject(nousDir string) error {
 	// Engineering skills (8): codebase-design, domain-modeling, grilling,
 	//   grill-with-docs, improve-codebase-architecture, openspec, wayfinder,
 	//   nous-agent
-	// NOUS skills (4): project-map, architecture-review, okf-knowledge, skill-creator
+	// NOUS skills (5): project-map, architecture-review, okf-knowledge,
+	//   skill-creator, nous-pipeline
+	//   (nous-sync-check is dev-only — maintained locally, never distributed)
 	engSkills := []string{
 		"codebase-design", "domain-modeling", "grilling", "grill-with-docs",
 		"improve-codebase-architecture", "openspec", "wayfinder", "nous-agent",
 	}
 	nousSkills := []string{
 		"project-map", "architecture-review", "okf-knowledge", "skill-creator",
+		"nous-pipeline",
 	}
 
 	srcBase := filepath.Join(nousDir, "hermes-skills")
@@ -337,6 +340,89 @@ tags: [okf, index, global-brain]
 `
 		if err := os.WriteFile(sysIndex, []byte(sysIndexContent), 0644); err != nil {
 			fmt.Printf("[NOUS] Warning: failed to create _system/index.md: %v\n", err)
+		}
+	}
+
+	// 6. Create/update SOUL.md with NOUS operating protocols (identity, always loaded)
+	soulPath := filepath.Join(hermesDir, "SOUL.md")
+	soulContent := `You are Hermes Agent, an intelligent AI assistant created by Nous Research. You are helpful, knowledgeable, and direct. You assist users with a wide range of tasks including answering questions, writing and editing code, analyzing information, creative work, and executing actions via your tools. You communicate clearly, admit uncertainty when appropriate, and prioritize being genuinely useful over being verbose unless otherwise directed below. Be targeted and efficient in your exploration and investigations.
+
+# NOUS Operating Protocols (global)
+
+These are the user's standing conventions — apply them in EVERY session, regardless of working directory.
+
+## Language
+- Conversation with the user: Spanish (es).
+- Code, commits, docs, UI strings, and technical artifacts: English (en).
+- Never mix languages in code or technical artifacts.
+
+## Session Start Protocol (every session)
+1. If the working directory has ` + "`.agents/MEMORY.md`" + `, read it first — active context, blockers, next action.
+2. Read ` + "`~/.hermes/OKF/index.md`" + ` (global catalog) — follow only links relevant to the current task (progressive disclosure, don't load everything).
+3. Use the ` + "`memory`" + ` tool for frequently-needed facts (auto-injected every turn).
+4. Use ` + "`session_search(\"query\")`" + ` for historical conversation context.
+
+## OKF Knowledge Maintenance
+- After meaningful work (decisions, verified runbooks, diagnosed failures, architecture insights), update the relevant OKF concept at ` + "`~/.hermes/OKF/<project>/`" + `.
+- Add milestones to ` + "`~/.hermes/OKF/log.md`" + ` (YYYY-MM-DD, newest first).
+- NEVER duplicate durable knowledge across MEMORY.md and OKF concepts.
+- NEVER migrate unverified or low-value chatter into OKF.
+
+## Git Safety
+- No ` + "`git commit`" + ` or ` + "`git push`" + ` without explicit user confirmation after showing ` + "`git diff`" + `.
+- Actions on APIs, Cloud, or CI/CD require a detailed plan and prior human approval.
+- Use ` + "`--no-verify`" + ` or ` + "`HUSKY=0`" + ` when husky hooks block legitimate operations.
+
+## Backups
+- Before editing any file outside ` + "`dev/sandbox/`" + `, create a copy in ` + "`dev/backups/`" + ` with format ` + "`YYYYMMDD_HHMMSS_filename.ext`" + `.
+- Never execute rollback without explicit user confirmation and a proposed diff.
+
+## Workflow Preference
+- Prefer action over planning: "continua" means execute the next step immediately without asking for clarification.
+- Deliver end-to-end working systems (skill + scripts + cron + delivery), not theoretical plans.
+`
+	if _, err := os.Stat(soulPath); os.IsNotExist(err) {
+		if err := os.WriteFile(soulPath, []byte(soulContent), 0644); err != nil {
+			fmt.Printf("[NOUS] Warning: failed to create SOUL.md: %v\n", err)
+		} else {
+			fmt.Printf("[NOUS]   SOUL.md created with NOUS operating protocols\n")
+		}
+	}
+
+	// 7. Create/update skill-bundles/nous.yaml — /nous loads all NOUS skills
+	bundlesDir := filepath.Join(hermesDir, "skill-bundles")
+	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create skill-bundles/: %w", err)
+	}
+	bundlePath := filepath.Join(bundlesDir, "nous.yaml")
+	bundleContent := `name: nous
+description: NOUS engineering + knowledge bundle — load all NOUS skills together.
+skills:
+  - codebase-design
+  - domain-modeling
+  - grilling
+  - grill-with-docs
+  - improve-codebase-architecture
+  - openspec
+  - wayfinder
+  - nous-agent
+  - nous-pipeline
+  - project-map
+  - architecture-review
+  - okf-knowledge
+  - skill-creator
+instruction: |
+  NOUS engineering and knowledge skills loaded together. Use them for the
+  full pipeline: grill → openspec → plan → execute (TDD) → review. Follow
+  the workflow in nous-agent skill and the conventions in
+  ~/.hermes/OKF/_system/conventions.md. Use nous-pipeline to orchestrate the
+  full SDD flow end-to-end.
+`
+	if _, err := os.Stat(bundlePath); os.IsNotExist(err) {
+		if err := os.WriteFile(bundlePath, []byte(bundleContent), 0644); err != nil {
+			fmt.Printf("[NOUS] Warning: failed to create skill-bundles/nous.yaml: %v\n", err)
+		} else {
+			fmt.Printf("[NOUS]   skill-bundles/nous.yaml created (bundle /nous)\n")
 		}
 	}
 

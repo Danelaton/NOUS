@@ -1,7 +1,7 @@
 # Hermes + NOUS — Enhanced Engineering
 
 ## Skills
-Carga el bundle `/nous` para activar todas las skills de ingeniería (11 skills).
+Carga el bundle `/nous` para activar todas las skills de NOUS (13 skills).
 Lista completa en `~/.hermes/OKF/_system/conventions.md`.
 
 ## Workflow estándar
@@ -14,6 +14,8 @@ Lista completa en `~/.hermes/OKF/_system/conventions.md`.
 5. /code-review         → verificar diff antes de push
 ```
 
+O todo el flujo de una vez con `/nous-pipeline` (orquesta grill → openspec → plan → TDD → review con `delegate_task`).
+
 Para trabajo enorme que no cabe en una sesión: `/wayfinder` → mapa de decision tickets.
 
 ## Al iniciar sesión
@@ -22,6 +24,8 @@ Para trabajo enorme que no cabe en una sesión: `/wayfinder` → mapa de decisio
 2. Leer `~/.hermes/OKF/index.md` (catálogo global) → seguir solo links relevantes a la tarea
 3. Usar `memory` tool para hechos frecuentes (se inyecta automático en cada turno)
 4. Usar `session_search("query")` para recuperar contexto de conversaciones pasadas
+
+Los protocolos globales (idioma, OKF, git safety, backups) viven en `~/.hermes/SOUL.md` — se inyectan en cada turno automáticamente.
 
 ## Memoria y OKF
 
