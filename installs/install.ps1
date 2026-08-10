@@ -171,6 +171,23 @@ function Install-SkillsFolder($repoPath, $destDir) {
 Install-SkillsFolder "installs/skills" $SKILLS_DIR
 Write-Ok "Skills downloaded to $SKILLS_DIR"
 
+# Download Hermes skills to ~/.nous/hermes-skills/
+Write-Host ""
+Write-Step "Downloading Hermes skills to ~/.nous/hermes-skills/..."
+$HERMES_SKILLS_DIR = Join-Path $NOUS_DIR "hermes-skills"
+New-Item -ItemType Directory -Path $HERMES_SKILLS_DIR -Force | Out-Null
+Install-SkillsFolder "installs/hermes-skills" $HERMES_SKILLS_DIR
+
+# Download AGENTS-HERMES.md
+$AGENTS_HERMES_URL = "https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO/main/installs/skeleton/AGENTS-HERMES.md"
+try {
+    Invoke-WebRequest -Uri $AGENTS_HERMES_URL -OutFile (Join-Path $HERMES_SKILLS_DIR "AGENTS-HERMES.md") -UseBasicParsing
+    Write-Ok "AGENTS-HERMES.md downloaded"
+} catch {
+    Write-Warn "Could not download AGENTS-HERMES.md — skipping"
+}
+Write-Ok "Hermes skills downloaded to $HERMES_SKILLS_DIR"
+
 # ============================================================================
 # PHASE 4: Summary
 # ============================================================================
@@ -189,6 +206,7 @@ Write-Host "[NOUS]   Usage:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project"
 Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
+Write-Host "[NOUS]   nous sync hermes     # inject 12 engineering skills into Hermes"
 Write-Host "[NOUS]   nous skills          # install/update skills in current project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
