@@ -51,7 +51,7 @@ $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
     SKILLS-STANDARD.md
 
   hermes-skills/               ← Hermes-specific skills (nous sync hermes)
-    12 skills for engineering workflows
+    13 skills for engineering workflows
 ```
 
 ---
@@ -68,7 +68,7 @@ $env:LOCALAPPDATA\nous\bin\nous.exe  ← binary (Windows)
 ### Agent injection (new)
 
 ```bash
-nous sync hermes    # injects 12 engineering skills + OKF + AGENTS-HERMES.md
+nous sync hermes    # injects 13 engineering skills + OKF + AGENTS-HERMES.md
 nous sync claude    # injects Claude Code config
 nous sync cursor    # injects Cursor IDE rules
 ```
@@ -133,6 +133,7 @@ Every non-reserved OKF concept is Markdown with YAML frontmatter and a required 
 | `grilling` | Design-tree interview to sharpen plans |
 | `grill-with-docs` | Grilling session that builds CONTEXT.md + ADRs |
 | `improve-codebase-architecture` | Scan for shallow modules, HTML report |
+| `nous-pipeline` | Full SDD flow orchestrator: grill → openspec → plan → TDD → review |
 | `okf-knowledge` | OKF v0.1 knowledge persistence |
 | `openspec` | Spec-driven development — 8-layer pipeline |
 | `project-map` | Generate structured PROJECT_MAP.md |
