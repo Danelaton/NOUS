@@ -419,9 +419,19 @@ skills:
   - okf-knowledge
   - skill-creator
 instruction: |
-  NOUS skills loaded — treat every skill below as active guidance for this turn.
+  NOUS is ACTIVE. All 13 skills below are loaded — treat them as active
+  guidance for this turn.
 
-  When to use which:
+  PRIMARY BEHAVIOR — /nous is the one-command activation:
+  - If the task is development work (feature, spec, code, architecture,
+    refactor, review), EXECUTE THE FULL SDD PIPELINE using the
+    nous-pipeline skill: grill → openspec → plan → TDD → review.
+    Do not ask permission — run it. Use "continua" signals to advance stages.
+  - If the task is NOT development (analysis, Q&A, knowledge, exploration),
+    use the relevant loaded skills directly without forcing the full flow.
+  - /nous-pipeline (the skill) remains available for explicit invocation.
+
+  When to use which skill:
   - grilling / grill-with-docs → align requirements BEFORE writing code (build CONTEXT.md + ADRs)
   - openspec → spec-first work: create proposal.md + tasks.md in openspec/changes/
   - wayfinder → map huge work as decision tickets on the tracker
