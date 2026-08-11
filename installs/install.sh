@@ -215,7 +215,7 @@ printf "${C}  Usage:${N}\n"
 printf "\n"
 printf "  %-30s %s\n" "cd ~/my-project" ""
 printf "  %-30s %s\n" "nous sync" "setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
-printf "  %-30s %s\n" "nous sync hermes" "inject 12 engineering skills into Hermes"
+printf "  %-30s %s\n" "nous sync hermes" "inject 13 NOUS skills + SOUL.md + /nous bundle into Hermes"
 printf "  %-30s %s\n" "nous skills" "install/update skills in current project"
 printf "\n"
 

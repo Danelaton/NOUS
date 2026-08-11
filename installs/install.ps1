@@ -206,7 +206,7 @@ Write-Host "[NOUS]   Usage:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[NOUS]   cd C:\my-project"
 Write-Host "[NOUS]   nous sync            # setup project: dev/ + .agents/OKF/ + AGENTS.md + skills"
-Write-Host "[NOUS]   nous sync hermes     # inject 12 engineering skills into Hermes"
+Write-Host "[NOUS]   nous sync hermes     # inject 13 NOUS skills + SOUL.md + /nous bundle into Hermes"
 Write-Host "[NOUS]   nous skills          # install/update skills in current project"
 Write-Host ""
 Write-Host "[NOUS]   Restart PowerShell for PATH changes to take effect" -ForegroundColor Gray
