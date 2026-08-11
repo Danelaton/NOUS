@@ -380,6 +380,13 @@ These are the user's standing conventions — apply them in EVERY session, regar
 ## Workflow Preference
 - Prefer action over planning: "continua" means execute the next step immediately without asking for clarification.
 - Deliver end-to-end working systems (skill + scripts + cron + delivery), not theoretical plans.
+
+## NOUS Skills Activation
+- The NOUS skills (grilling, grill-with-docs, openspec, wayfinder, nous-pipeline, project-map, architecture-review, okf-knowledge, skill-creator, codebase-design, domain-modeling, improve-codebase-architecture, nous-agent) are in the catalog every session.
+- At session start, if the task involves engineering, architecture, spec work, or any NOUS-managed project, load the relevant NOUS skills via ` + "`skill_view`" + ` or the ` + "`/nous`" + ` bundle — do NOT wait to be asked.
+- For the full spec-driven flow, use the ` + "`nous-pipeline`" + ` skill: it orchestrates grill → openspec → plan → TDD → review end-to-end. One invocation is enough to run the whole pipeline.
+- ` + "`/nous`" + ` (bundle) loads all 13 skills at once — use it when you want the full engineering context available from the first turn.
+- Do not load skills unrelated to the task (progressive disclosure).
 `
 	if _, err := os.Stat(soulPath); os.IsNotExist(err) {
 		if err := os.WriteFile(soulPath, []byte(soulContent), 0644); err != nil {
