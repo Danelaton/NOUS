@@ -158,16 +158,16 @@ func (a *RooAdapter) Inject(nousDir string) error {
 type HermesAdapter struct{ BaseAdapter }
 
 func NewHermesAdapter() *HermesAdapter {
-	hermesHome := resolveHermesHome()
+	hermesHome := ResolveHermesHome()
 	return &HermesAdapter{BaseAdapter{
 		name:       "hermes",
 		configDirs: []string{hermesHome},
 	}}
 }
 
-// resolveHermesHome returns the Hermes home directory.
+// ResolveHermesHome returns the Hermes home directory.
 // On Windows, this is %LOCALAPPDATA%/hermes (not ~/.hermes).
-func resolveHermesHome() string {
+func ResolveHermesHome() string {
 	// 1. HERMES_HOME env var (explicit override)
 	if hh := os.Getenv("HERMES_HOME"); hh != "" {
 		return hh
@@ -195,7 +195,7 @@ func resolveHermesHome() string {
 }
 
 func (a *HermesAdapter) Inject(nousDir string) error {
-	hermesDir := resolveHermesHome()
+	hermesDir := ResolveHermesHome()
 
 	fmt.Println("[NOUS] Injecting Hermes configuration...")
 

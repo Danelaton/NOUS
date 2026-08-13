@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/Danelaton/NOUS/pkg/config"
 )
 
 type Orchestrator struct {
@@ -170,9 +172,8 @@ func (o *Orchestrator) SetupProject(projectDir string, force bool) error {
 	}
 
 	// ── 7. Copy AGENTS.md (or AGENTS-HERMES.md) to project ─────────────────
-	// If Hermes is detected (~/.hermes/AGENTS-HERMES.md exists), use that
-	home, _ := os.UserHomeDir()
-	hermesAgents := filepath.Join(home, ".hermes", "AGENTS-HERMES.md")
+	// If Hermes is detected (AGENTS-HERMES.md in its resolved home), use that
+	hermesAgents := filepath.Join(config.ResolveHermesHome(), "AGENTS-HERMES.md")
 	agentsSrc := filepath.Join(o.nousDir, "skills", "AGENTS.md")
 
 	if _, err := os.Stat(hermesAgents); err == nil {
