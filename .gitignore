@@ -63,5 +63,5 @@ openspec/
 !installs/hermes-skills/openspec/
 
 # ─── Verdent / AI agent workspaces ──────────────────────────────────────────
-.agent/
+.agents/
 .verdent/

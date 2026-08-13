@@ -85,6 +85,34 @@ func TestOKFConceptTemplatesHaveTypeFrontmatter(t *testing.T) {
 	}
 }
 
+func TestSetupProjectRefusesHomeDir(t *testing.T) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Skipf("no home directory: %v", err)
+	}
+	o := &Orchestrator{nousDir: filepath.Join(t.TempDir(), ".nous")}
+	if err := o.SetupProject(home, false); err == nil {
+		t.Fatal("expected refusal when scaffolding in home directory")
+	}
+}
+
+func TestSetupProjectCreatesStructure(t *testing.T) {
+	projectDir := t.TempDir()
+	o := &Orchestrator{nousDir: filepath.Join(t.TempDir(), ".nous")}
+	if err := o.SetupProject(projectDir, false); err != nil {
+		t.Fatalf("SetupProject failed: %v", err)
+	}
+	for _, p := range []string{
+		filepath.Join("dev", "sandbox"),
+		filepath.Join(".agents", "MEMORY.md"),
+		filepath.Join(".agents", "OKF", "index.md"),
+	} {
+		if _, err := os.Stat(filepath.Join(projectDir, p)); err != nil {
+			t.Errorf("expected %s to exist: %v", p, err)
+		}
+	}
+}
+
 func assertFileContent(t *testing.T, path, expected string) {
 	t.Helper()
 

@@ -107,7 +107,15 @@ func (o *Orchestrator) Run() error {
 }
 
 // SetupProject creates the project structure: dev/, .agents/, and copies AGENTS.md.
-func (o *Orchestrator) SetupProject(projectDir string) error {
+// It refuses to scaffold the user's home directory unless force is true.
+func (o *Orchestrator) SetupProject(projectDir string, force bool) error {
+	if !force {
+		home, _ := os.UserHomeDir()
+		if isHomeDir(projectDir, home) {
+			return fmt.Errorf("refusing to scaffold in home directory %s — run 'nous sync' inside a project folder, or pass --force to override", home)
+		}
+	}
+
 	fmt.Printf("[NOUS] Setting up project structure...\n")
 
 	// ── 1. Create dev/ with all subdirectories ──────────────────────────────
@@ -428,6 +436,22 @@ func mergeDir(src, dst string) error {
 		}
 		return copyFile(path, dstPath)
 	})
+}
+
+// isHomeDir reports whether dir resolves to the user's home directory.
+// Comparison is case-insensitive on Windows.
+func isHomeDir(dir, home string) bool {
+	a, errA := filepath.Abs(dir)
+	b, errB := filepath.Abs(home)
+	if errA != nil || errB != nil {
+		return false
+	}
+	a = filepath.Clean(a)
+	b = filepath.Clean(b)
+	if runtime.GOOS == "windows" {
+		return strings.EqualFold(a, b)
+	}
+	return a == b
 }
 
 // addGitignoreEntry appends an entry to .gitignore if not already present.

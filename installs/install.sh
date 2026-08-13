@@ -21,8 +21,10 @@ VERSION=$(curl -fsSL "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO
     | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 
 if [ -z "$VERSION" ]; then
-    printf "[NOUS] Could not fetch latest release — using default version\n"
-    VERSION="v2026.5.19"
+    printf "[NOUS] Could not fetch the latest release from GitHub — aborting to avoid installing a stale binary.\n" >&2
+    printf "[NOUS] Check your network and retry, or download manually from:\n" >&2
+    printf "[NOUS]   https://github.com/%s/%s/releases/latest\n" "$GITHUB_OWNER" "$GITHUB_REPO" >&2
+    exit 1
 fi
 
 SKILLS_DIR="$HOME/.nous/skills"

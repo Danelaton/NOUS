@@ -17,8 +17,8 @@ NOUS agents need persistent memory across sessions without relying on external A
 
 | Layer | File | Type | Tracked | Purpose |
 |-------|------|------|---------|---------|
-| 1 | `.agent/MEMORY.md` | AAAK index | No | Fast lookup: entities, decisions, work status |
-| 2 | `.agent/docs_index.md` | Document map | No | Locate relevant documentation fast |
+| 1 | `.agents/MEMORY.md` | AAAK index | No | Fast lookup: entities, decisions, work status |
+| 2 | `.agents/docs_index.md` | Document map | No | Locate relevant documentation fast |
 | 3 | `docs/ADR_*.md` | Narratives | Yes | Formal architectural decisions |
 | 4 | `dev/docs/*.md` | Logs/references | No | Technical context, migrations, team |
 
@@ -26,7 +26,7 @@ NOUS agents need persistent memory across sessions without relying on external A
 
 ### 2. MEMORY.md — Dense AAAK Index
 
-**Decision**: `.agent/MEMORY.md` is the primary memory index, encoded in AAAK dialect.
+**Decision**: `.agents/MEMORY.md` is the primary memory index, encoded in AAAK dialect.
 
 **Structure**:
 ```
@@ -112,8 +112,8 @@ AAAK:
 **Decision**: At the start of every session, the agent reads MEMORY.md and docs_index.md before doing anything else.
 
 **Sequence**:
-1. READ `.agent/MEMORY.md` completely
-2. READ `.agent/docs_index.md`
+1. READ `.agents/MEMORY.md` completely
+2. READ `.agents/docs_index.md`
 3. If session_count > 1 → review Session Log from last session
 4. Load relevant ADRs into context
 5. If Open Issues exist → check if `dev/docs/` has updates
@@ -128,7 +128,7 @@ AAAK:
 **Decision**: When uncertain, the agent always searches MEMORY.md before asking the user.
 
 **Sequence**:
-1. Read `.agent/MEMORY.md` fully
+1. Read `.agents/MEMORY.md` fully
 2. Search for the entity or keyword
 3. If found → use that context
 4. If NOT found → ask the user, then add to MEMORY.md
@@ -137,7 +137,7 @@ AAAK:
 
 ### 7. docs_index.md — Document Map
 
-**Decision**: `.agent/docs_index.md` maps all documentation for fast location.
+**Decision**: `.agents/docs_index.md` maps all documentation for fast location.
 
 **Structure**:
 ```

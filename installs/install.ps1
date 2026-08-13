@@ -23,8 +23,9 @@ $VERSION = try {
     $release = Invoke-RestMethod "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" -UseBasicParsing
     $release.tag_name
 } catch {
-    Write-Host "[NOUS] Could not fetch latest release — using default version" -ForegroundColor Yellow
-    "v2026.5.19"
+    Write-Host "[NOUS] Could not fetch the latest release from GitHub — aborting to avoid installing a stale binary." -ForegroundColor Red
+    Write-Host "[NOUS] Check your network and retry, or download manually from: https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" -ForegroundColor Red
+    exit 1
 }
 
 function Write-Step  { param($msg) Write-Host "[NOUS] $msg" -ForegroundColor Cyan }

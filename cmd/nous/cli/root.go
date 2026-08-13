@@ -116,7 +116,8 @@ Backs up existing AGENTS.md to dev/backups/ if one already exists.`,
 		if err != nil {
 			return err
 		}
-		if err := orch.SetupProject(projectDir); err != nil {
+		force, _ := cmd.Flags().GetBool("force")
+		if err := orch.SetupProject(projectDir, force); err != nil {
 			return err
 		}
 		fmt.Printf("[NOUS] Project ready: %s\n", projectDir)
@@ -147,6 +148,7 @@ var skillsCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(installCmd, statusCmd, syncCmd, skillsCmd)
 	syncCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
+	syncCmd.Flags().Bool("force", false, "Allow scaffolding in the home directory (dangerous)")
 	skillsCmd.Flags().StringP("dir", "d", "", "Project directory (default: current directory)")
 }
 

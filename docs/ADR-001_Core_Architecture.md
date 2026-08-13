@@ -38,7 +38,7 @@ Agent configs are injected to `~/.nous/config/<agent>/` (claude/config.json, cur
 - Agent configs point to `~/.nous/` paths
 - Project directories remain clean
 
-### 3. Project Structure: openspec/ + dev/ + .agent/
+### 3. Project Structure: openspec/ + dev/ + .agents/
 
 **Decision**: Project directories contain three distinct areas:
 
@@ -46,14 +46,14 @@ Agent configs are injected to `~/.nous/config/<agent>/` (claude/config.json, cur
 |-----------|---------|---------|
 | `openspec/` | No | SDD specs and change proposals |
 | `dev/` | No | Working memory: sandbox, scripts, tests, docs, backups |
-| `.agent/` | No | Agent memory: MEMORY.md, docs_index.md, skills |
+| `.agents/` | No | Agent memory: MEMORY.md, docs_index.md, skills |
 | `docs/` | Yes | ADRs (Architectural Decision Records) |
 
 **Rationale**:
-- Clear separation between working state (dev/) and persistent project memory (.agent/)
+- Clear separation between working state (dev/) and persistent project memory (.agents/)
 - `dev/` is explicitly NOT tracked — scratchpad for experiments
 - `docs/` is tracked — formal architectural decisions
-- `.agent/` persists context across agent sessions
+- `.agents/` persists context across agent sessions
 
 ### 4. OpenSpec as SDD Workflow Foundation
 

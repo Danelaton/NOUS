@@ -29,7 +29,7 @@ NOUS agents need a consistent identity, rules, and memory protocol across all se
 |---|---------|---------|
 | 1 | Identity & Role | Name, role, reasoning model |
 | 2 | Communication Protocol | Language rules (Spanish reports, English code) |
-| 3 | Directory Topology | Mandatory structure (dev/, openspec/, .agent/, docs/) |
+| 3 | Directory Topology | Mandatory structure (dev/, openspec/, .agents/, docs/) |
 | 4 | OpenSpec & SDD Workflow | SPEC-first protocol |
 | 5 | Memory System | MEMORY.md, auto-persist, AAAK dialect |
 | 6 | AAAK Dialect | Encoding rules for memory compression |
