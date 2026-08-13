@@ -166,7 +166,7 @@ func NewHermesAdapter() *HermesAdapter {
 }
 
 // resolveHermesHome returns the Hermes home directory.
-// On Windows, this is %APPDATA%/hermes (not ~/.hermes).
+// On Windows, this is %LOCALAPPDATA%/hermes (not ~/.hermes).
 func resolveHermesHome() string {
 	// 1. HERMES_HOME env var (explicit override)
 	if hh := os.Getenv("HERMES_HOME"); hh != "" {
@@ -177,7 +177,13 @@ func resolveHermesHome() string {
 	if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
 		return filepath.Join(xdg, "hermes")
 	}
-	// 3. Windows: %APPDATA%/hermes
+	// 3. Windows: %LOCALAPPDATA%/hermes (canonical), then %APPDATA%/hermes
+	if local := os.Getenv("LOCALAPPDATA"); local != "" {
+		p := filepath.Join(local, "hermes")
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
 	if appData := os.Getenv("APPDATA"); appData != "" {
 		p := filepath.Join(appData, "hermes")
 		if _, err := os.Stat(p); err == nil {
