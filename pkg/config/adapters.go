@@ -194,6 +194,19 @@ func ResolveHermesHome() string {
 	return filepath.Join(home, ".hermes")
 }
 
+// resolveOKFRoot returns the global OKF knowledge library root (~/.hermes/OKF),
+// independent of the Hermes home directory. On Windows the Hermes home is
+// %LOCALAPPDATA%/hermes, but SOUL.md and the hermes-okf-system skill reference
+// ~/.hermes/OKF — keeping these consistent avoids a split-brain OKF (skills,
+// SOUL.md and the bundle in one tree, OKF in another).
+func resolveOKFRoot() string {
+	if okf := os.Getenv("HERMES_OKF_HOME"); okf != "" {
+		return filepath.Join(okf, "OKF")
+	}
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".hermes", "OKF")
+}
+
 func (a *HermesAdapter) Inject(nousDir string) error {
 	hermesDir := ResolveHermesHome()
 
@@ -261,7 +274,7 @@ func (a *HermesAdapter) Inject(nousDir string) error {
 	}
 
 	// 4. Initialize OKF _system/ if not exists
-	okfSystem := filepath.Join(hermesDir, "OKF", "_system")
+	okfSystem := filepath.Join(resolveOKFRoot(), "_system")
 	if err := os.MkdirAll(okfSystem, 0755); err != nil {
 		return fmt.Errorf("failed to create OKF _system/: %w", err)
 	}
@@ -289,7 +302,7 @@ tags: [conventions, system, hermes, nous]
 - Bundle ` + "`" + `/nous` + "`" + ` loads all engineering + NOUS skills.
 - **Engineering**: grilling, domain-modeling, codebase-design, grill-with-docs,
   wayfinder, improve-codebase-architecture, openspec, nous-agent.
-- **NOUS**: project-map, architecture-review, okf-knowledge, skill-creator.
+- **NOUS**: project-map, architecture-review, okf-knowledge, skill-creator, nous-pipeline.
 - **nous-agent**: Loaded automatically — session start protocol, backups, git safety, OKF maintenance, Hermes tool usage.
 
 ## Workflow
@@ -312,7 +325,7 @@ tags: [conventions, system, hermes, nous]
 	}
 
 	// 5. Update OKF index.md to include _system
-	okfIndex := filepath.Join(hermesDir, "OKF", "index.md")
+	okfIndex := filepath.Join(resolveOKFRoot(), "index.md")
 	if _, err := os.Stat(okfIndex); os.IsNotExist(err) {
 		indexContent := `---
 type: Directory
@@ -342,7 +355,6 @@ tags: [okf, index, global-brain]
 		sysIndexContent := `# System Knowledge
 
 * [Conventions](conventions.md) — Cross-project conventions, paths, and standards.
-* [Skills Catalog](skills-catalog.md) — Available skills and bundles.
 `
 		if err := os.WriteFile(sysIndex, []byte(sysIndexContent), 0644); err != nil {
 			fmt.Printf("[NOUS] Warning: failed to create _system/index.md: %v\n", err)
